@@ -1,0 +1,21 @@
+# Entornos virtuales
+venv_demo/
+venv/
+env/
+.env
+
+# Archivos compilados y cache de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Archivos de empaquetado y distribución
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db

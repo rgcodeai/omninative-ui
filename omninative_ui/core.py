@@ -61,6 +61,7 @@ class OWindow(QMainWindow):
         # Si es modo Hug, aplicamos el truco nativo
         if self._hug_mode:
             self._root_layout.setSizeConstraint(QVBoxLayout.SetFixedSize)
+            self.layout().setSizeConstraint(QVBoxLayout.SetFixedSize)
             # Inyector de ancho estricto invisible
             self._width_forcer = QWidget()
             self._width_forcer.setFixedSize(width, 0)

@@ -87,4 +87,4 @@ from .chat import (
 # Re-export QTreeWidgetItem for convenience (used in demo)
 from PySide6.QtWidgets import QTreeWidgetItem
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"

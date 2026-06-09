@@ -73,6 +73,7 @@ from .media import (
     OAudioPlayer,
     OImageViewer,
     OFullscreenViewer,
+    OFileItem,
 )
 
 from .chat import (

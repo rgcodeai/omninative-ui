@@ -107,6 +107,7 @@ For full API references, architecture guides, and instructions on how to create 
 | `OAudioPlayer` | Full audio player with waveform |
 | `OAudioWaveform` | Interactive waveform visualizer |
 | `OImageViewer` | Image gallery with fullscreen |
+| `OFileItem` | Visual card for file attachments with actions |
 
 ### Chat
 | Component | Description |

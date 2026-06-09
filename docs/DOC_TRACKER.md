@@ -27,6 +27,7 @@
     └── 📁 docs/
         ├── 📄 INDEX.md            # Main context router for documentation
         ├── 📄 DOC_TRACKER.md      # Project structure map in tree format
+        ├── 📄 AI_PROMPT.md        # AI Instruction Manual for building UI
         └── 📁 core/
             ├── 📄 ui-system.md    # Central router and UI guide oriented to AIs
             ├── 📄 component-development.md # Guide for creating new UI components

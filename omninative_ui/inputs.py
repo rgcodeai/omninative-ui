@@ -329,5 +329,12 @@ class OProgressBar(QProgressBar):
     def set(self, val: int) -> None:
         self.setValue(val)
         
+    def set_indeterminate(self, active: bool = True) -> None:
+        if active:
+            self.setRange(0, 0)
+        else:
+            self.setRange(0, 100)
+            self.setValue(0)
+            
     def pack(self, **kwargs: Any) -> None:
         pass

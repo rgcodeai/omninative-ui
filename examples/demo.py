@@ -9,7 +9,7 @@ from omninative_ui import (
     OWindow, OGroup, OLabel, OButton, 
     OComboBox, OCheckBox, OLineEdit, OTextBox, OSpinBox, OScrollArea, 
     OVirtualTable, OStatusBar, OSlider, OTabs, OSeparator, ORadioButton,
-    OTreeWidget, QTreeWidgetItem, OOptionRow, OAudioPlayer, OProgressBar,
+    OTreeWidget, QTreeWidgetItem, OOptionRow, OAudioPlayer, OProgressBar, OFileItem,
     OImageViewer, OChatView, OChatInput, OActionMenu
 )
 
@@ -119,7 +119,19 @@ def main():
     # OProgressBar
     # -----------------------------------------------------------------------
     tree_prog = OTreeWidget(main_group, text="OProgressBar", expanded=False)
-    tree_prog.add_widget(OProgressBar(tree_prog.content, from_=0, to=100, value=45))
+    prog_group = OGroup(tree_prog.content, orientation="v")
+    
+    prog_group.layout_.addWidget(OLabel(prog_group, text="Determinate (45%)"))
+    prog_det = OProgressBar(prog_group)
+    prog_det.set(45)
+    prog_group.layout_.addWidget(prog_det)
+    
+    prog_group.layout_.addWidget(OLabel(prog_group, text="Indeterminate"))
+    prog_indet = OProgressBar(prog_group)
+    prog_indet.set_indeterminate(True)
+    prog_group.layout_.addWidget(prog_indet)
+    
+    tree_prog.add_widget(prog_group)
     main_group.layout_.addWidget(tree_prog)
     main_group.layout_.addWidget(OSeparator(main_group))
     
@@ -202,6 +214,15 @@ def main():
     image_viewer = OImageViewer(tree_image.content)
     tree_image.add_widget(image_viewer)
     main_group.layout_.addWidget(tree_image)
+    main_group.layout_.addWidget(OSeparator(main_group))
+    
+    # -----------------------------------------------------------------------
+    # OFileItem
+    # -----------------------------------------------------------------------
+    tree_file = OTreeWidget(main_group, text="OFileItem", expanded=False)
+    file_item = OFileItem(tree_file.content, filepath="C:/example/report.pdf", filesize_str="2.4 MB")
+    tree_file.add_widget(file_item)
+    main_group.layout_.addWidget(tree_file)
     main_group.layout_.addWidget(OSeparator(main_group))
     
     # -----------------------------------------------------------------------

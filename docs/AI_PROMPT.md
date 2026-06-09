@@ -11,8 +11,8 @@ You are an expert PySide6 developer using the **OmniNative UI** component librar
 ## Design & Layout Guidelines
 
 1. **Window Setup & "Hug" Layout**: Centralize dimensions using a local variable. NEVER use hardcoded values for dimensions in the rest of the code; define a `target_width` variable at the beginning.
-   - We strictly follow a "Figma-like Hug" behavior where the window vertically wraps its visible content perfectly and automatically grows/shrinks as components appear/disappear, without allowing manual vertical resizing.
-   - To enable this, simply instantiate the window with `height=0`. The `OWindow` class automatically handles layout constraints and strict width dummies natively. If you also want it to wrap horizontally, pass `width=0`.
+   - We strictly follow a "Figma-like Hug" behavior where the window vertically wraps its visible content perfectly and automatically grows/shrinks as components appear/disappear.
+   - To enable this, simply instantiate the window with `height=0`. The `OWindow` class automatically adjusts vertically, while allowing the internal content to stretch and respond horizontally if there is extra width available. If you also want it to strictly wrap horizontally, pass `width=0`.
    - Apply strict, symmetrical margins: `win.body.layout().setContentsMargins(20, 20, 20, 20)`.
      ```python
      target_width = 450
@@ -20,8 +20,9 @@ You are an expert PySide6 developer using the **OmniNative UI** component librar
      win.body.layout().setContentsMargins(20, 20, 20, 20)
      ```
 2. **Logical Grouping**: Group related components into logical sections using `OGroup(panel=True)` to create an outline/container native effect.
-3. **Section Spacing**: Ensure strict and standardized spacing between sections or groups. Apply exactly 10px spacing between all major components: `layout.setSpacing(10)`.
-4. **Section Headers**: The main title or label of each section MUST have `bright=True` and `bold=True`.
+3. **Responsive Columns & Grids**: OmniNative perfectly supports native responsive grids. Use an `OGroup(orientation="h")` as a row. Control fixed widths via `.setFixedWidth(px)` on the children, and flexible expanding widths via PySide's stretch factors: `row.layout().addWidget(col, stretch=1)`.
+4. **Section Spacing**: Ensure strict and standardized spacing between sections or groups. Apply exactly 10px spacing between all major components: `layout.setSpacing(10)`.
+5. **Section Headers**: The main title or label of each section MUST have `bright=True` and `bold=True`.
 
 ## Import Scheme
 
@@ -41,8 +42,7 @@ from omninative_ui import OWindow, OGroup, OLabel, OButton, OTextBox, OProgressB
 - **Implementation (Hug Pattern)**:
 
 ```python
-target_width = 450
-win = OWindow(title="My App", width=target_width, height=0) # height=0 auto-enables native hug mode
+win = OWindow(title="My App", width=450, height=0) # height=0 auto-enables native hug mode
 
 # 1. Apply standardized margins and spacing
 main_layout = win.body.layout()
@@ -57,17 +57,28 @@ sys.exit(app.exec())
 
 #### `OGroup`
 
-- **Supports**: Grouping UI elements logically with vertical or horizontal layout. Can have a panel background.
-- **Implementation**:
+- **Supports**: Grouping UI elements logically with vertical or horizontal layout. Fundamental for creating responsive grids and panels.
+- **Implementation (Panels & Grids)**:
 
 ```python
-# Create a logical section
+# Create a logical section (Vertical Panel)
 config_group = OGroup(win.body, orientation="v", panel=True)
 config_group.layout_.setContentsMargins(15, 15, 15, 15)
 config_group.layout_.setSpacing(10)
-
-# Always add the group to the parent's layout
 win.body.layout().addWidget(config_group)
+
+# Create responsive columns (Horizontal Row)
+row = OGroup(config_group, orientation="h")
+config_group.layout_.addWidget(row)
+
+col_fixed = OGroup(row, panel=True)
+col_fixed.setFixedWidth(200) # Fixed Sidebar/Menu
+
+col_flex = OGroup(row, panel=True) # Flexible Content
+
+# Add to horizontal layout: (widget, stretch_factor)
+row.layout().addWidget(col_fixed, 0)
+row.layout().addWidget(col_flex, 1) # This column expands to fill remaining space
 ```
 
 ---

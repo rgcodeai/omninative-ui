@@ -17,7 +17,7 @@ Description: Main application window. Automatically injects the base global them
 | :--- | :--- | :--- | :--- |
 | `title` | `str` | `"OmniNative Plugin"` | Window title. |
 | `width` | `int` | `480` | Initial window width. Si se pasa `0` junto con `height=0`, la ventana se adaptará a su contenido en ambos ejes (Hug mode total). |
-| `height` | `int` | `620` | Initial window height. Si se pasa `0`, habilita el modo "Hug": el ancho se vuelve estricto y la altura crece/se encoge nativamente según su contenido. |
+| `height` | `int` | `620` | Initial window height. Si se pasa `0`, habilita el modo "Hug": la altura se ajusta verticalmente al contenido nativamente, permitiendo que el contenido interno se expanda horizontalmente si hay espacio disponible. |
 | `resizable` | `bool` | `False` | If `True`, the window allows resizing. |
 | `icon_path` | `Optional[str]` | `None` | Path to a custom `.png` or `.ico` to be used as window icon. If not provided, a default vector OmniNative logo is generated. |
 

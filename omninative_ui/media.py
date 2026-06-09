@@ -432,7 +432,7 @@ class OAudioPlayer(QWidget):
         
     def _open_file_dialog(self) -> None:
         from PySide6.QtWidgets import QFileDialog
-        filepath, _ = QFileDialog.getOpenFileName(None, "Open Audio File", "", "Audio Files (*.wav *.mp3 *.ogg *.m4a)")
+        filepath, _ = QFileDialog.getOpenFileName(None, "Open Media File", "", "Media Files (*.wav *.mp3 *.ogg *.m4a *.mp4 *.avi *.mov *.mkv)")
         if filepath:
             self.current_filepath = filepath
             filename = os.path.basename(filepath)

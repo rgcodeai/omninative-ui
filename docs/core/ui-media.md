@@ -10,7 +10,7 @@ This module groups components for visualizing and manipulating complex media, su
 
 Path: `omninative_ui/media.py`
 Type: Component (QWidget)
-Description: Full audio player with support for native playback (via `QtMultimedia`), top name bar, internal waveform visualizer, and Play, Stop, Microphone (for local audio recording), and Volume controls.
+Description: Full audio player with support for native playback (via `QtMultimedia`), top name bar, internal waveform visualizer, and Play, Stop, Microphone (for local audio recording), and Volume controls. Soporta carga nativa de archivos de video para extraer y reproducir únicamente su pista de audio.
 
 #### Initialization (Props)
 | Prop | Type | Default | Description |

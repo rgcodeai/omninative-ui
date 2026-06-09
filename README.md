@@ -66,6 +66,10 @@ sys.exit(app.exec())
 
 For full API references, architecture guides, and instructions on how to create new components, please check the [Full Documentation (`/docs/INDEX.md`)](docs/INDEX.md).
 
+### 🤖 For AI Agents
+
+If you are an Autonomous Agent or AI Assistant tasked with **building an application using OmniNative UI**, you can use the [AI Instruction Manual (`docs/AI_PROMPT.md`)](docs/AI_PROMPT.md) as your system prompt or quick-start guide. It contains all the necessary context, component cheat sheets, and rules to write perfect native code out of the box.
+
 ## 🧩 Components
 
 ### Core

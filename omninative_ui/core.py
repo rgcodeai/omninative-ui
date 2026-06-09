@@ -75,10 +75,6 @@ class OWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
         
-        # Si es modo Hug, el main_layout también debe restringirse
-        if self._hug_mode:
-            self.main_layout.setSizeConstraint(QVBoxLayout.SetFixedSize)
-
         self._root_layout.addWidget(content_wrapper, 1)
 
         self._body = QWidget()

@@ -10,14 +10,14 @@ This module contains the structural and fundamental components for building the 
 
 Path: `omninative_ui/core.py`
 Type: Component (QMainWindow)
-Description: Main application window. Automatically injects the base global theme through OmniNative styles and supports smooth appearance to avoid flickering.
+Description: Main application window. Automatically injects the base global theme through OmniNative styles and supports smooth appearance to avoid flickering. Also supports vertical responsive "Hug" mode natively when instantiated with `height=0`.
 
 #### Initialization (Props)
 | Prop | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `title` | `str` | `"OmniNative Plugin"` | Window title. |
-| `width` | `int` | `480` | Initial window width. |
-| `height` | `int` | `620` | Initial window height. |
+| `width` | `int` | `480` | Initial window width. Si se pasa `0` junto con `height=0`, la ventana se adaptará a su contenido en ambos ejes (Hug mode total). |
+| `height` | `int` | `620` | Initial window height. Si se pasa `0`, habilita el modo "Hug": el ancho se vuelve estricto y la altura crece/se encoge nativamente según su contenido. |
 | `resizable` | `bool` | `False` | If `True`, the window allows resizing. |
 | `icon_path` | `Optional[str]` | `None` | Path to a custom `.png` or `.ico` to be used as window icon. If not provided, a default vector OmniNative logo is generated. |
 

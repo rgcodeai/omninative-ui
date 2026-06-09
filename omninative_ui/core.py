@@ -31,6 +31,7 @@ class OWindow(QMainWindow):
         self.setWindowFlags(Qt.Window)
 
         self._resizable = resizable
+        self._hug_mode = (height == 0)
 
         if icon_path and os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
@@ -38,17 +39,17 @@ class OWindow(QMainWindow):
             from .icons import _get_cached_app_icon
             self.setWindowIcon(_get_cached_app_icon())
 
-        if height > 0:
-            self.resize(width, height)
+        # Geometría Inicial
+        if self._hug_mode:
+            self.setMinimumWidth(width) # Aseguramos un mínimo
         else:
-            self.setMinimumSize(width, 200)
-
-        if not resizable:
-            self.setFixedSize(self.size())
+            self.resize(width, height)
+            if not resizable:
+                self.setFixedSize(self.size())
 
         self.setStyleSheet(get_global_stylesheet())
 
-        # Root structure
+        # Estructura Root
         self.central_widget = QWidget()
         self.central_widget.setObjectName("central_widget")
         self.setCentralWidget(self.central_widget)
@@ -57,13 +58,27 @@ class OWindow(QMainWindow):
         self._root_layout.setContentsMargins(0, 0, 0, 0)
         self._root_layout.setSpacing(0)
 
-        # Content area without global margins (margins must be applied inside scrollable areas)
+        # Si es modo Hug, aplicamos el truco nativo
+        if self._hug_mode:
+            self._root_layout.setSizeConstraint(QVBoxLayout.SetFixedSize)
+            # Inyector de ancho estricto invisible
+            self._width_forcer = QWidget()
+            self._width_forcer.setFixedSize(width, 0)
+            self._root_layout.addWidget(self._width_forcer)
+
+        # Wrapper de contenido principal
         content_wrapper = QWidget()
         content_wrapper.setObjectName("content_wrapper")
         content_wrapper.setStyleSheet("#content_wrapper { background: transparent; }")
+        
         self.main_layout = QVBoxLayout(content_wrapper)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
+        
+        # Si es modo Hug, el main_layout también debe restringirse
+        if self._hug_mode:
+            self.main_layout.setSizeConstraint(QVBoxLayout.SetFixedSize)
+
         self._root_layout.addWidget(content_wrapper, 1)
 
         self._body = QWidget()

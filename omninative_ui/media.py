@@ -16,7 +16,7 @@ from PySide6.QtCore import (
 )
 
 from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER, _PAD
-from .icons import _get_cached_audio_icon
+from .icons import _get_cached_audio_icon, _get_cached_file_icon
 from .core import OButton, OElidedLabel
 from .inputs import _WheelIgnoredSlider
 
@@ -1029,3 +1029,82 @@ class OImageViewer(QWidget):
         return None
         
     def pack(self, **kwargs: Any) -> None: pass
+
+# ---------------------------------------------------------------------------
+# OFileItem
+# ---------------------------------------------------------------------------
+class OFileItem(QFrame):
+    open_requested = Signal(str)
+    save_requested = Signal(str)
+
+    def __init__(self, master: Optional[QWidget], filepath: str, filename: str = "", filesize_str: str = "", **kwargs: Any) -> None:
+        super().__init__(master)
+        self.filepath = filepath
+        self.filename = filename or os.path.basename(filepath)
+        
+        self.setFixedHeight(50)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        
+        # Style as a card
+        self.setStyleSheet(f"""
+            OFileItem {{
+                background-color: {OMNINATIVE['dark']};
+                border: 1px solid {OMNINATIVE['gray']};
+                border-radius: {_CORNER}px;
+            }}
+            OFileItem:hover {{
+                border: 1px solid {OMNINATIVE['primary']};
+            }}
+        """)
+        
+        self.layout_ = QHBoxLayout(self)
+        self.layout_.setContentsMargins(12, 8, 12, 8)
+        self.layout_.setSpacing(12)
+        
+        # Icon
+        self.icon_lbl = QLabel()
+        self.icon_lbl.setFixedSize(24, 24)
+        self.icon_lbl.setAlignment(Qt.AlignCenter)
+        self.icon_lbl.setStyleSheet("background: transparent; border: none;")
+        pix = _get_cached_file_icon(size=24, color=OMNINATIVE["primary"])
+        self.icon_lbl.setPixmap(pix)
+        
+        # Text details
+        self.text_layout = QVBoxLayout()
+        self.text_layout.setContentsMargins(0, 0, 0, 0)
+        self.text_layout.setSpacing(2)
+        
+        self.name_lbl = QLabel(self.filename)
+        self.name_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM, QFont.Bold))
+        self.name_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']}; background: transparent; border: none;")
+        
+        self.size_lbl = QLabel(filesize_str)
+        self.size_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM - 2))
+        self.size_lbl.setStyleSheet(f"color: {OMNINATIVE['accent']}; background: transparent; border: none;")
+        
+        self.text_layout.addWidget(self.name_lbl)
+        self.text_layout.addWidget(self.size_lbl)
+        
+        # Action Buttons
+        self.open_btn = OButton(self, text="Open", variant="secondary")
+        self.open_btn.setFixedSize(60, 24)
+        self.open_btn.clicked.connect(self._on_open)
+        
+        self.save_btn = OButton(self, text="Save", variant="primary")
+        self.save_btn.setFixedSize(60, 24)
+        self.save_btn.clicked.connect(self._on_save)
+        
+        self.layout_.addWidget(self.icon_lbl)
+        self.layout_.addLayout(self.text_layout)
+        self.layout_.addStretch(1)
+        self.layout_.addWidget(self.open_btn)
+        self.layout_.addWidget(self.save_btn)
+        
+    def _on_open(self) -> None:
+        self.open_requested.emit(self.filepath)
+        
+    def _on_save(self) -> None:
+        self.save_requested.emit(self.filepath)
+        
+    def pack(self, **kwargs: Any) -> None: pass
+

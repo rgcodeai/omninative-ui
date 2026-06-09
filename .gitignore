@@ -19,3 +19,6 @@ dist/
 # Archivos del sistema operativo
 .DS_Store
 Thumbs.db
+
+# Demo 
+demo_ai.py

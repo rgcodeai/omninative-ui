@@ -93,3 +93,25 @@ Description: Embedded image viewer and gallery. Allows dragging, scaling, and in
 Path: `omninative_ui/media.py`
 Type: Component (QDialog)
 Description: Full-screen and opaque viewer (`Qt.WindowStaysOnTopHint`), typically managed from `OImageViewer`. Not usually used explicitly.
+
+---
+
+### `OFileItem`
+
+Path: `omninative_ui/media.py`
+Type: Component (QFrame)
+Description: A card component to display a generated file's icon, name, and size, offering Open and Save action buttons.
+
+#### Initialization (Props)
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `master` | `Optional[QWidget]` | `None` | Parent container. |
+| `filepath` | `str` | | Absolute path of the file. |
+| `filename` | `str` | `""` | File name (if empty, it extracts it from filepath). |
+| `filesize_str`| `str` | `""` | Optional string denoting the file size (e.g. "1.2 MB"). |
+
+#### Signals
+| Name | Type | Description |
+| :--- | :--- | :--- |
+| `open_requested(str)` | Signal | Emitted when the user clicks 'Open', passing the filepath. |
+| `save_requested(str)` | Signal | Emitted when the user clicks 'Save', passing the filepath. |

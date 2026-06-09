@@ -354,3 +354,39 @@ def _get_cached_app_icon(size: int = 64) -> 'QIcon':
         painter.end()
         _icon_cache[key] = QIcon(pixmap)
     return _icon_cache[key]
+
+def _get_cached_file_icon(size: int = 24, color: Optional[str] = None) -> QPixmap:
+    if color is None:
+        color = OMNINATIVE["accent"]
+    key = ("file", size, color)
+    if key not in _icon_cache:
+        pixmap = QPixmap(size, size)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        pen = QPen(QColor(color))
+        pen.setWidthF(max(1.5, size * 0.08))
+        pen.setCapStyle(Qt.RoundCap)
+        pen.setJoinStyle(Qt.RoundJoin)
+        painter.setPen(pen)
+        painter.setBrush(Qt.NoBrush)
+        
+        path = QPainterPath()
+        # Outer shape
+        path.moveTo(size * 0.25, size * 0.15)
+        path.lineTo(size * 0.25, size * 0.85)
+        path.lineTo(size * 0.75, size * 0.85)
+        path.lineTo(size * 0.75, size * 0.35)
+        path.lineTo(size * 0.55, size * 0.15)
+        path.closeSubpath()
+        
+        # Inner fold
+        path.moveTo(size * 0.55, size * 0.15)
+        path.lineTo(size * 0.55, size * 0.35)
+        path.lineTo(size * 0.75, size * 0.35)
+        
+        painter.drawPath(path)
+        painter.end()
+        _icon_cache[key] = pixmap
+    return _icon_cache[key]

@@ -110,12 +110,12 @@ Description: Progress bar for long-running tasks. Can operate in determinate or 
 | Prop | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `master` | `Optional[QWidget]` | | Parent container. |
-| `mode` | `str` | `"determinate"` | `"determinate"` (goes from 0.0 to 1.0) or `"indeterminate"` (circular animation). |
+| `master` | `Optional[QWidget]` | | Parent container. |
 | `width` | `int` | `0` | Optional fixed width. |
 
 #### Key Methods
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `get() -> float` | Method | Returns a value between `0.0` and `1.0`. |
-| `set(val: Any)` | Method | Receives a `float` in the range `0.0` to `1.0` if `determinate`. |
-| `start()` / `stop()` | Method | Starts or stops the animation in `indeterminate` mode. |
+| `get() -> float` | Method | Returns the current value. |
+| `set(val: Any)` | Method | Sets the progress bar value (0 to 100). |
+| `set_indeterminate(active: bool)` | Method | Activates or deactivates the indeterminate animation mode. |

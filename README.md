@@ -1,7 +1,7 @@
 # OmniNative UI
 
-[![PyPI version](https://img.shields.io/pypi/v/omninative-ui.svg)](https://pypi.org/project/omninative-ui/)
-[![Python Support](https://img.shields.io/pypi/pyversions/omninative-ui.svg)](https://pypi.org/project/omninative-ui/)
+[![PyPI version](https://img.shields.io/pypi/v/omninative-ui.svg?color=blue&cache=none)](https://pypi.org/project/omninative-ui/)
+[![Python Support](https://img.shields.io/pypi/pyversions/omninative-ui.svg?color=blue&cache=none)](https://pypi.org/project/omninative-ui/)
 [![License](https://img.shields.io/badge/license-LGPL--3.0-blue.svg)](https://github.com/rgcodeai/omninative-ui/blob/main/LICENSE)
 
 <!-- Banner Principal -->

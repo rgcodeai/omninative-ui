@@ -495,7 +495,7 @@ def main():
     
     recorder_overlay = OAudioRecorderOverlay(window)
     # Set a global hotkey to show/hide the floating recording overlay
-    recorder_overlay.set_hotkey("ctrl+shift+r")
+    recorder_overlay.set_hotkey("ctrl+shift+>")
     recorder_overlay.recording_finished.connect(lambda path: print(f"Audio saved to: {path}"))
     
     # Interactive Hotkey Configurator
@@ -504,7 +504,7 @@ def main():
     hotkey_lbl = OLabel(hotkey_row, text="Change Recorder Hotkey:", bold=True)
     
     hotkey_input = OHotkeyInput(hotkey_row, width=150)
-    hotkey_input.set("ctrl+shift+r")
+    hotkey_input.set("ctrl+shift+>")
     hotkey_input.bind(None, lambda val: recorder_overlay.set_hotkey(val) if val else None)
     
     # Use the callback property

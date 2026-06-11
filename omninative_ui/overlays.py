@@ -34,9 +34,11 @@ class OHotkeyOverlay(QWidget):
 
     def __init__(self, master: Optional[QWidget] = None) -> None:
         super().__init__(master)
+        
         # Configure as a frameless floating tool window that stays on top
+        # Qt.ToolTip flag is crucial here: it prevents the OS from un-minimizing the main window
         self.setWindowFlags(
-            Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.X11BypassWindowManagerHint
+            Qt.ToolTip | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.X11BypassWindowManagerHint
         )
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         
@@ -44,6 +46,7 @@ class OHotkeyOverlay(QWidget):
         self._is_visible = False
         self._keyboard_hook = None
         
+        self.hide()
         self._hotkey_signal.connect(self.toggle)
         
     def set_hotkey(self, hotkey_str: str) -> None:
@@ -238,18 +241,31 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
         painter.drawPath(path)
         
     def position_on_screen(self) -> None:
-        """Positions the overlay at the bottom center of the screen or parent window."""
-        if self.parentWidget():
-            parent_geom = self.parentWidget().geometry()
-            x = parent_geom.center().x() - self.width() // 2
-            y = parent_geom.bottom() - self.height() - 40  # 40px margin from bottom
-            self.move(x, y)
-        else:
-            from PySide6.QtGui import QGuiApplication
-            screen = QGuiApplication.primaryScreen().geometry()
-            x = screen.center().x() - self.width() // 2
-            y = screen.bottom() - 100  # 100px from bottom
-            self.move(x, y)
+        """Positions the overlay at the bottom center of the active screen (mouse position), ignoring parent geometry."""
+        from PySide6.QtGui import QGuiApplication, QCursor
+        
+        # 1. Get the global cursor position to determine which screen to use (Important for multi-screen setups)
+        cursor_pos = QCursor.pos()
+        target_screen = QGuiApplication.primaryScreen()
+        
+        # 2. Find the screen that contains the cursor (or fallback to primary)
+        for s in QGuiApplication.screens():
+            if s.geometry().contains(cursor_pos):
+                target_screen = s
+                break
+                
+        geom = target_screen.geometry()
+        
+        # 3. Move the window to the target screen (Important for multi-screen setups)
+        window_handle = self.windowHandle()
+        if window_handle:
+            window_handle.setScreen(target_screen)
+            
+        # 4. Calculate the exact center on the active screen (Ignoring the parent window)
+        x = geom.x() + (geom.width() - self.width()) // 2
+        y = geom.bottom() - 100
+        
+        self.move(x, y)
 
     def on_show(self) -> None:
         """Starts recording when the overlay appears."""
@@ -335,7 +351,6 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
     def _update_ui(self) -> None:
         """Called periodically by QTimer to update the waveform."""
         if self._is_recording:
-            # We add the last known peak to the waveform
             self.waveform.add_peak(self._current_volume)
             # Add some decay to the volume so it doesn't freeze high
             self._current_volume *= 0.5

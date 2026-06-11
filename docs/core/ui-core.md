@@ -17,7 +17,7 @@ Description: Main application window. Automatically injects the base global them
 | :--- | :--- | :--- | :--- |
 | `title` | `str` | `"OmniNative Plugin"` | Window title. |
 | `width` | `int` | `480` | Initial window width. Si se pasa `0` junto con `height=0`, la ventana se adaptará a su contenido en ambos ejes (Hug mode total). |
-| `height` | `int` | `620` | Initial window height. Si se pasa `0`, habilita el modo "Hug": la altura se ajusta verticalmente al contenido nativamente, permitiendo que el contenido interno se expanda horizontalmente si hay espacio disponible. |
+| `height` | `Union[int, str]` | `620` | Initial window height. Si se pasa `"auto"`, habilita el modo "Hug": la altura se ajusta verticalmente al contenido nativamente, permitiendo que el contenido interno se expanda horizontalmente si hay espacio disponible. |
 | `resizable` | `bool` | `False` | If `True`, the window allows resizing. |
 | `icon_path` | `Optional[str]` | `None` | Path to a custom `.png` or `.ico` to be used as window icon. If not provided, a default vector OmniNative logo is generated. |
 
@@ -40,8 +40,11 @@ Description: Semantic container. Can be rendered transparent or darkened (`panel
 | :--- | :--- | :--- | :--- |
 | `master` | `Optional[QWidget]` | | Parent container. |
 | `orientation` | `str` | `"v"` | Internal layout direction: `"v"` (Vertical) or `"h"` (Horizontal). |
-| `pad` | `int` | `_PAD` (8) | Spacing between elements and margins. |
+| `pad` | `int` | `0` | Internal padding (margins) inside the group. |
+| `spacing` | `int` | `5` | Spacing between elements inside the group. |
 | `panel` | `bool` | `False` | If `True`, the container draws a dark background and border (`#1E1E22`). |
+| `width` | `Union[int, str]` | `"auto"` | Width: `int`=fixed, `"100%"`=expand, `"N%"`=proportional, `"auto"`=hug. |
+| `height` | `Union[int, str]` | `"auto"` | Height: `int`=fixed, `"100%"`=expand, `"N%"`=proportional, `"auto"`=hug. |
 
 #### Key Methods
 | Name | Type | Description |
@@ -50,11 +53,34 @@ Description: Semantic container. Can be rendered transparent or darkened (`panel
 
 ---
 
+### `OSectionHeader` & `OSeparator`
+
+Path: `omninative_ui/core.py`
+Type: Component (QWidget / QFrame)
+Description: Semantic elements for separating sections. `OSectionHeader` provides a large, bright title. `OSeparator` provides a horizontal gray line with padding.
+
+#### Initialization (Props for OSectionHeader)
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `master` | `Optional[QWidget]` | | Parent container. |
+| `text` | `str` | `""` | The section title text. |
+| `pad` | `int` | `0` | Uniform padding. |
+| `size` | `int` | `_FONT_SIZE_LG` | Font size in points. |
+
+#### Initialization (Props for OSeparator)
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `master` | `Optional[QWidget]` | | Parent container. |
+| `height` | `int` | `1` | Thickness of the gray line in px. |
+| `pad_y` | `int` | `5` | Vertical margin applied top and bottom. |
+
+---
+
 ### `OButton`
 
 Path: `omninative_ui/core.py`
 Type: Component (QPushButton)
-Description: General-purpose actionable button. Supports visual variants (primary, danger, neutral).
+Description: General-purpose actionable button. Supports visual variants (primary, danger, neutral) and provides native, non-blocking visual feedback states for post-action operations (e.g. flashing "Saved!").
 
 #### Initialization (Props)
 | Prop | Type | Default | Description |
@@ -65,7 +91,16 @@ Description: General-purpose actionable button. Supports visual variants (primar
 | `primary` | `bool` | `False` | Main style with blue background (`#528BFF`). |
 | `danger` | `bool` | `False` | Danger style with red/alert background. |
 | `small` | `bool` | `False` | Reduces padding and height to fit in compact bars. |
-| `width` | `int` | `0` | Force a fixed width (if > 0). |
+| `width` | `Union[int, str]` | `"auto"` | Fixed width in px. `"100%"` = Expanding, `"auto"` = Hug. |
+| `height` | `int` | `0` | Fixed height. `0` = auto (24 if small else 22). |
+| `pad_x` | `int` | `15` | Horizontal internal padding. |
+| `pad_y` | `int` | `0` | Vertical internal padding. |
+
+#### Key Methods
+| Name | Type | Description |
+| :--- | :--- | :--- |
+| `set_text(text: str)` | Method | Permanently changes the base text of the button. |
+| `show_feedback(text: str, duration_ms: int = 2000, success: bool = True)` | Method | Natively flashes the button's text and background color (uses `bright` theme for success or `danger` for errors) for `duration_ms` milliseconds without blocking the UI, then restores its original state. Excellent for inline feedback. |
 
 ---
 
@@ -99,8 +134,16 @@ Description: Highly customized dropdown selector (Combo Box) with translucent po
 | `master` | `Optional[QWidget]` | | Parent container. |
 | `values` | `Optional[List[Any]]` | `None` | List of initial values to display. |
 | `command` | `Optional[Callable[[Any], None]]`| `None` | Callback executed when a new value is selected. Passes the selected value as an argument. |
-| `width` | `int` | `0` | Force fixed width. |
+| `width` | `Union[int, str]` | `"100%"` | Fixed width in px. `"100%"` = Expanding, `"auto"` = Hug. |
+| `height` | `Union[int, str]` | `22` | Fixed height in px. |
 | `transparent` | `bool` | `False` | If `True`, removes background and border from inactive state. |
+| `pad_left` | `int` | `8` | Left internal padding of the closed box. |
+| `pad_right` | `int` | `3` | Right internal padding of the closed box. |
+| `spacing` | `int` | `4` | Gap between text and chevron. |
+| `icon_size` | `int` | `20` | Chevron icon size. |
+| `item_height` | `int` | `24` | Height of each item in the popup dropdown. |
+| `max_visible_items` | `int` | `10` | Max items visible before scrolling in the popup. |
+| `dropdown_pad_left` | `int` | `10` | Left padding for the items in the dropdown. |
 
 #### Key Methods
 | Name | Type | Description |
@@ -115,8 +158,8 @@ Description: Highly customized dropdown selector (Combo Box) with translucent po
 ### `ORadioButton` & `OCheckBox`
 
 Path: `omninative_ui/core.py`
-Type: Component
 Description: Mutually exclusive (Radio) or independent (Check) boolean state controls.
+*Note: Because `ORadioButton` is natively a `QRadioButton`, you align it inside layouts via standard Qt flags (e.g. `layout.addWidget(radio, 0, Qt.AlignRight)`). `OCheckBox`, being a custom container, handles its alignment internally using its `align` prop.*
 
 #### Initialization (Props)
 | Prop | Type | Default | Description |
@@ -124,6 +167,10 @@ Description: Mutually exclusive (Radio) or independent (Check) boolean state con
 | `master` | `Optional[QWidget]` | | Parent container. |
 | `text` | `str` | `""` | Text adjacent to the control. |
 | `command` | `Optional[Callable[[int], None]]`| `None` | Change callback. Returns `1` or `0`. |
+| `spacing` | `int` | `8` (Radio) / `6` (Check) | Spacing between icon and text. |
+| `icon_size` | `int` | `12` (Radio) / `20` (Check)| Size of the clickable icon. |
+| `icon_position` | `str` | `"left"` | Defines whether the control is on the left (`"left"`) or right (`"right"`) of the text. |
+| `align` | `str` | `"left"` | General alignment of the widget (`"left"`, `"right"`, `"center"`). |
 
 #### Key Methods
 | Name | Type | Description |
@@ -158,6 +205,7 @@ Description: Utility layout in horizontal format that displays a Label on the le
 | `master` | `Optional[QWidget]` | | Parent container. |
 | `label_text` | `str` | `""` | Static text of the property to modify. |
 | `label_width` | `int` | `100` | Width of the text area. Useful for aligning multiple rows. |
+| `pad_right` | `int` | `12` | Padding to the right of the label. |
 
 #### Key Properties
 | Name | Type | Description |

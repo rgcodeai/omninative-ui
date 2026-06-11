@@ -17,6 +17,23 @@ Description: Message history in bubble format (Chat). Renders the visual distinc
 | :--- | :--- | :--- | :--- |
 | `master` | `Optional[QWidget]` | `None` | Parent container. |
 
+**Layout & Dimensions:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `width` | `Union[int, str]` | `"100%"` | Fixed width in px or CSS percentage. `"100%"` = Expanding. |
+| `height` | `Union[int, str]` | `"auto"` | Fixed height in px. `"auto"` = Hug. |
+| `pad` | `int` | `10` | Internal padding inside the scroll area. |
+| `spacing` | `int` | `15` | Spacing between messages. |
+
+#### Usage Examples
+```python
+# Default
+chat_view = OChatView(config_group)
+
+# Customized
+chat_view = OChatView(config_group, width=400, pad=15, spacing=20)
+```
+
 #### Key Methods
 | Name | Type | Description |
 | :--- | :--- | :--- |
@@ -35,10 +52,38 @@ Description: Multi-line text box anchored at the bottom of the chat, with an int
 #### Initialization (Props)
 | Prop | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `master` | `Optional[QWidget]` | | Parent container. |
-| `send_command` | `Callable[[str], None]` | | Mandatory callback triggered by pressing the Send button or pressing the `Enter` key (without shift). Returns the content of the input. |
-| `attach_command`| `Optional[Callable[[], None]]`| `None` | If provided, the clip button to attach multimedia appears, which executes this callback. |
-| `placeholder` | `str` | `"Type a message..."`| Dimmed background text. |
+| `parent` | `Optional[QWidget]` | `None` | Parent container. |
+| `placeholder_text`| `str` | `"Pregunta lo que quieras"`| Dimmed background text. |
+
+**Layout & Dimensions:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `width` | `Union[int, str]` | `"100%"` | Fixed width in px or CSS percentage. `"100%"` = Expanding. |
+| `height` | `Union[int, str]` | `50` | Fixed height in px. `"auto"` = Hug. |
+| `pad_left` | `int` | `15` | Left padding. |
+| `pad_right` | `int` | `10` | Right padding. |
+| `pad_y` | `int` | `0` | Vertical padding. |
+| `spacing` | `int` | `10` | Spacing between add button, input, and action button. |
+| `button_size` | `int` | `30` | Width/height of the add button. |
+| `action_button_size` | `int` | `34` | Width/height of the action button. |
+| `icon_size` | `int` | `24` | Size of icons. |
+| `action_icon_size` | `int` | `20` | Size of the action button icon. |
+
+**Visibility:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `show_add` | `bool` | `True` | Show/hide the "+" add button. |
+| `show_action`| `bool` | `True` | Show/hide the action (arrow) button. |
+
+#### Usage Examples
+```python
+# Default
+chat_input = OChatInput(config_group)
+chat_input.submitted.connect(lambda text: print(text))
+
+# Custom placeholder without add button
+chat_input = OChatInput(config_group, placeholder_text="Type a message...", show_add=False, height=60)
+```
 
 #### Key Methods
 | Name | Type | Description |
@@ -58,7 +103,25 @@ Description: Compact grid of buttons or suggested actions. Commonly used above `
 #### Initialization (Props)
 | Prop | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `master` | `Optional[QWidget]` | | Parent container. |
+| `parent` | `Optional[QWidget]` | `None` | Parent container. |
+
+**Layout & Dimensions:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `width` | `Union[int, str]` | `280` | Fixed width in px or CSS percentage. `"100%"` = Expanding. |
+| `height` | `Union[int, str]` | `"auto"` | Fixed height in px. `"auto"` = Hug. |
+| `pad` | `int` | `6` | Internal padding. |
+| `spacing` | `int` | `2` | Spacing between menu items. |
+
+#### Usage Examples
+```python
+# Default
+menu = OActionMenu(parent_widget)
+menu.add_action("Option 1")
+
+# Compact
+menu = OActionMenu(parent_widget, width=200, pad=4, spacing=0)
+```
 
 #### Key Methods
 | Name | Type | Description |

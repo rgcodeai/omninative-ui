@@ -1,5 +1,5 @@
 # omninative_ui/inputs.py
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, Union
 from PySide6.QtWidgets import (
     QWidget,
     QHBoxLayout,
@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSlider,
     QProgressBar,
+    QSizePolicy,
 )
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
@@ -19,18 +20,27 @@ from .tokens import (
     _CORNER,
     _PAD,
 )
+from ._utils import apply_layout_dimensions
 
 
 # ---------------------------------------------------------------------------
 # OLineEdit
 # ---------------------------------------------------------------------------
 class OLineEdit(QLineEdit):
-    def __init__(self, master: Optional[QWidget], placeholder: str = "", width: int = 0, command: Optional[Callable[[str], None]] = None, password: bool = False, read_only: bool = False, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        placeholder: str = "",
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = 22,
+        command: Optional[Callable[[str], None]] = None,
+        password: bool = False,
+        read_only: bool = False,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
         self.setPlaceholderText(placeholder)
-        if width > 0:
-            self.setFixedWidth(width)
-        self.setFixedHeight(22)
+        apply_layout_dimensions(self, width, height)
         self._command = command
         
         if password:
@@ -49,6 +59,7 @@ class OLineEdit(QLineEdit):
         
     def set(self, val: Any) -> None:
         self.setText(str(val))
+        self.setCursorPosition(0)
         
     def bind(self, event: Any, callback: Any, **kwargs: Any) -> None:
         # Dummy for tkinter compatibility
@@ -60,11 +71,19 @@ class OLineEdit(QLineEdit):
 # OTextBox
 # ---------------------------------------------------------------------------
 class OTextBox(QTextEdit):
-    def __init__(self, master: Optional[QWidget], width: int = 0, height: int = 40, command: Optional[Callable[[str], None]] = None, on_enter: Optional[Callable[['OTextBox', str, str], None]] = None, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        placeholder: str = "",
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = 40,
+        command: Optional[Callable[[str], None]] = None,
+        on_enter: Optional[Callable[['OTextBox', str, str], None]] = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
-        if width > 0:
-            self.setFixedWidth(width)
-        self.setFixedHeight(height)
+        self.setPlaceholderText(placeholder)
+        apply_layout_dimensions(self, width, height)
         self._command = command
         self._on_enter_callback = on_enter
         
@@ -115,22 +134,34 @@ class OTextBox(QTextEdit):
 # OSpinBox
 # ---------------------------------------------------------------------------
 class OSpinBox(QWidget):
-    def __init__(self, master: Optional[QWidget], from_: int = 0, to: int = 100, value: int = 0, step: int = 1, command: Optional[Callable[[int], None]] = None, width: int = 120, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        from_: int = 0,
+        to: int = 100,
+        value: int = 0,
+        step: int = 1,
+        command: Optional[Callable[[int], None]] = None,
+        width: Union[int, str] = 120,
+        height: Union[int, str] = 22,
+        pad: int = 0,
+        spacing: int = 2,
+        button_width: int = 24,
+        show_buttons: bool = True,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
         self.layout_ = QHBoxLayout(self)
-        self.layout_.setContentsMargins(0, 0, 0, 0)
-        self.layout_.setSpacing(2)
+        self.layout_.setContentsMargins(pad, pad, pad, pad)
+        self.layout_.setSpacing(spacing)
         
-        if width > 0:
-            self.setFixedWidth(width)
+        apply_layout_dimensions(self, width, height)
             
         self._min = from_
         self._max = to
         self._step = step
         self._command = command
         self._value = value
-        
-        btn_w = 24
         
         btn_style = f"""
             QPushButton {{
@@ -148,21 +179,26 @@ class OSpinBox(QWidget):
         """
         
         self.btn_minus = QPushButton("−")
-        self.btn_minus.setFixedSize(btn_w, 22)
+        self.btn_minus.setFixedSize(button_width, height)
         self.btn_minus.clicked.connect(self._decrement)
         self.btn_minus.setStyleSheet(btn_style)
         
-        self.entry = OLineEdit(self, width=width - btn_w * 2 - 4)
+        entry_w = "100%" if isinstance(width, str) and width in ("100%", "expand", "fill") else (width - button_width * 2 - (spacing * 2) if isinstance(width, int) and width > 0 else "100%")
+        self.entry = OLineEdit(self, width=entry_w, height=height)
         self.entry.setAlignment(Qt.AlignCenter)
         self.entry.set(str(value))
         
         self.btn_plus = QPushButton("+")
-        self.btn_plus.setFixedSize(btn_w, 22)
+        self.btn_plus.setFixedSize(button_width, height)
         self.btn_plus.clicked.connect(self._increment)
         self.btn_plus.setStyleSheet(btn_style)
         
+        if not show_buttons:
+            self.btn_minus.hide()
+            self.btn_plus.hide()
+            
         self.layout_.addWidget(self.btn_minus)
-        self.layout_.addWidget(self.entry)
+        self.layout_.addWidget(self.entry, 1)
         self.layout_.addWidget(self.btn_plus)
         
     def get(self) -> int:
@@ -194,14 +230,27 @@ class _WheelIgnoredSlider(QSlider):
         event.ignore()
 
 class OSlider(QWidget):
-    def __init__(self, master: Optional[QWidget], orientation: str = "h", from_: int = 0, to: int = 100, value: int = 0, command: Optional[Callable[[int], None]] = None, width: int = 0, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        orientation: str = "h",
+        from_: int = 0,
+        to: int = 100,
+        value: int = 0,
+        command: Optional[Callable[[int], None]] = None,
+        width: Union[int, str] = "100%",
+        pad: int = 0,
+        spacing: int = 6,
+        entry_width: int = 40,
+        show_entry: bool = True,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
         self.layout_ = QHBoxLayout(self)
-        self.layout_.setContentsMargins(0, 0, 0, 0)
-        self.layout_.setSpacing(6)
+        self.layout_.setContentsMargins(pad, pad, pad, pad)
+        self.layout_.setSpacing(spacing)
         
-        if width > 0:
-            self.setFixedWidth(width)
+        apply_layout_dimensions(self, width, 22)
             
         ori = Qt.Horizontal if orientation == "h" else Qt.Vertical
         self._slider = _WheelIgnoredSlider(ori, self)
@@ -210,10 +259,13 @@ class OSlider(QWidget):
         self._slider.setValue(value)
         self._slider.setCursor(Qt.PointingHandCursor)
         
-        self._entry = OLineEdit(self, width=40)
+        self._entry = OLineEdit(self, width=entry_width)
         self._entry.setAlignment(Qt.AlignCenter)
         self._entry.set(str(value))
         
+        if not show_entry:
+            self._entry.hide()
+            
         self.layout_.addWidget(self._slider)
         self.layout_.addWidget(self._entry)
         
@@ -296,17 +348,24 @@ class OSlider(QWidget):
 # OProgressBar
 # ---------------------------------------------------------------------------
 class OProgressBar(QProgressBar):
-    def __init__(self, master: Optional[QWidget] = None, from_: int = 0, to: int = 100, value: int = 0, width: int = 0, height: int = 3, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        from_: int = 0,
+        to: int = 100,
+        value: int = 0,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = 3,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
         self.setRange(from_, to)
         self.setValue(value)
         self.setTextVisible(False)
         
-        if width > 0:
-            self.setFixedWidth(width)
+        apply_layout_dimensions(self, width, height)
             
-        h = height if height > 0 else 3
-        self.setFixedHeight(h)
+        h = int(height) if isinstance(height, int) else 3
         cr = h // 2
         if cr < 1:
             cr = 1

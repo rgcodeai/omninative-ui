@@ -21,10 +21,11 @@ def _get_cached_checkbox(size: int = 20, checked: bool = False, bg_color: Option
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
         
-        rect = QRect(0, 0, size - 1, size - 1)
+        # Alineación a 0.5 para trazos de 1px nítidos con antialiasing
+        rect = QRectF(0.5, 0.5, size - 1.0, size - 1.0)
         painter.setBrush(QBrush(QColor(bg_color)))
         pen = QPen(QColor(border_color))
-        pen.setWidth(1)
+        pen.setWidthF(1.0)
         painter.setPen(pen)
         painter.drawRoundedRect(rect, corner_radius, corner_radius)
         

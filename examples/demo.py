@@ -30,6 +30,59 @@ def main():
     main_group.layout_.setContentsMargins(20, 10, 20, 10)
     
     # -----------------------------------------------------------------------
+    # OGroup (Responsive Layout)
+    # -----------------------------------------------------------------------
+    tree_layout = OTreeWidget(main_group, text="OGroup (Responsive Layout)", expanded=False)
+    layout_group = OGroup(tree_layout.content, orientation="v", spacing=10)
+    
+    layout_group.layout_.addWidget(OLabel(layout_group, text="60% / 40%", bright=True, bold=True))
+    row_60_40 = OGroup(layout_group, orientation="h")
+    col_60 = OGroup(row_60_40, width="60%", panel=True, pad=10)
+    col_60.layout_.addWidget(OLabel(col_60, text="width=\"60%\""))
+    col_40 = OGroup(row_60_40, width="40%", panel=True, pad=10)
+    col_40.layout_.addWidget(OLabel(col_40, text="width=\"40%\""))
+    row_60_40.layout_.addWidget(col_60)
+    row_60_40.layout_.addWidget(col_40)
+    layout_group.layout_.addWidget(row_60_40)
+    
+    layout_group.layout_.addWidget(OLabel(layout_group, text="70% / 30%", bright=True, bold=True))
+    row_70_30 = OGroup(layout_group, orientation="h")
+    col_70 = OGroup(row_70_30, width="70%", panel=True, pad=10)
+    col_70.layout_.addWidget(OLabel(col_70, text="width=\"70%\""))
+    col_30 = OGroup(row_70_30, width="30%", panel=True, pad=10)
+    col_30.layout_.addWidget(OLabel(col_30, text="width=\"30%\""))
+    row_70_30.layout_.addWidget(col_70)
+    row_70_30.layout_.addWidget(col_30)
+    layout_group.layout_.addWidget(row_70_30)
+    
+    layout_group.layout_.addWidget(OLabel(layout_group, text="33% / 33% / 33%", bright=True, bold=True))
+    row_thirds = OGroup(layout_group, orientation="h")
+    col_t1 = OGroup(row_thirds, width="33%", panel=True, pad=10)
+    col_t1.layout_.addWidget(OLabel(col_t1, text="width=\"33%\""))
+    col_t2 = OGroup(row_thirds, width="33%", panel=True, pad=10)
+    col_t2.layout_.addWidget(OLabel(col_t2, text="width=\"33%\""))
+    col_t3 = OGroup(row_thirds, width="33%", panel=True, pad=10)
+    col_t3.layout_.addWidget(OLabel(col_t3, text="width=\"33%\""))
+    row_thirds.layout_.addWidget(col_t1)
+    row_thirds.layout_.addWidget(col_t2)
+    row_thirds.layout_.addWidget(col_t3)
+    layout_group.layout_.addWidget(row_thirds)
+    
+    layout_group.layout_.addWidget(OLabel(layout_group, text="Fixed 120px + 100%", bright=True, bold=True))
+    row_mixed = OGroup(layout_group, orientation="h")
+    col_fix = OGroup(row_mixed, width=120, panel=True, pad=10)
+    col_fix.layout_.addWidget(OLabel(col_fix, text="width=120"))
+    col_fill = OGroup(row_mixed, width="100%", panel=True, pad=10)
+    col_fill.layout_.addWidget(OLabel(col_fill, text="width=\"100%\""))
+    row_mixed.layout_.addWidget(col_fix)
+    row_mixed.layout_.addWidget(col_fill)
+    layout_group.layout_.addWidget(row_mixed)
+    
+    tree_layout.add_widget(layout_group)
+    main_group.layout_.addWidget(tree_layout)
+    main_group.layout_.addWidget(OSeparator(main_group))
+    
+    # -----------------------------------------------------------------------
     # OTabs
     # -----------------------------------------------------------------------
     tree_tabs = OTreeWidget(main_group, text="OTabs", expanded=False)
@@ -52,9 +105,9 @@ def main():
     # -----------------------------------------------------------------------
     tree_labels = OTreeWidget(main_group, text="OLabel", expanded=False)
     label_group = OGroup(tree_labels.content, orientation="h")
-    label_group.layout_.addWidget(OLabel(label_group, text="Standard Label"))
-    label_group.layout_.addWidget(OLabel(label_group, text="Bold Label", bold=True))
-    label_group.layout_.addWidget(OLabel(label_group, text="Bright Label", bright=True))
+    label_group.layout_.addWidget(OLabel(label_group, text="Standard Label", width="33%"))
+    label_group.layout_.addWidget(OLabel(label_group, text="Bold Label", bold=True, width="33%"))
+    label_group.layout_.addWidget(OLabel(label_group, text="Bright Label", bright=True, width="33%"))
     tree_labels.add_widget(label_group)
     main_group.layout_.addWidget(tree_labels)
     main_group.layout_.addWidget(OSeparator(main_group))
@@ -72,9 +125,14 @@ def main():
     # -----------------------------------------------------------------------
     tree_btns = OTreeWidget(main_group, text="OButton", expanded=False)
     btn_group = OGroup(tree_btns.content, orientation="h")
-    btn_group.layout_.addWidget(OButton(btn_group, text="Primary", primary=True))
-    btn_group.layout_.addWidget(OButton(btn_group, text="Standard"))
-    btn_group.layout_.addWidget(OButton(btn_group, text="Danger", danger=True))
+    btn_group.layout_.addWidget(OButton(btn_group, text="Primary", primary=True, width="25%"))
+    btn_group.layout_.addWidget(OButton(btn_group, text="Standard", width="25%"))
+    btn_group.layout_.addWidget(OButton(btn_group, text="Danger", danger=True, width="25%"))
+    
+    btn_feedback = OButton(btn_group, text="Save (Feedback)", primary=True, width="25%")
+    btn_feedback.clicked.connect(lambda: btn_feedback.show_feedback("Saved!", duration_ms=1500, success=True))
+    btn_group.layout_.addWidget(btn_feedback)
+    
     tree_btns.add_widget(btn_group)
     main_group.layout_.addWidget(tree_btns)
     main_group.layout_.addWidget(OSeparator(main_group))
@@ -95,7 +153,7 @@ def main():
     # OTextBox
     # -----------------------------------------------------------------------
     tree_textbox = OTreeWidget(main_group, text="OTextBox", expanded=False)
-    tree_textbox.add_widget(OTextBox(tree_textbox.content, height=60))
+    tree_textbox.add_widget(OTextBox(tree_textbox.content, height=60, placeholder="Enter your multi-line text here..."))
     main_group.layout_.addWidget(tree_textbox)
     main_group.layout_.addWidget(OSeparator(main_group))
     
@@ -148,7 +206,10 @@ def main():
     # OCheckBox
     # -----------------------------------------------------------------------
     tree_checkbox = OTreeWidget(main_group, text="OCheckBox", expanded=False)
-    tree_checkbox.add_widget(OCheckBox(tree_checkbox.content, text="Enable Feature"))
+    tree_checkbox.add_widget(OCheckBox(tree_checkbox.content, text="Enable Feature (Left)"))
+    tree_checkbox.add_widget(OCheckBox(tree_checkbox.content, text="Enable Feature (Right)", icon_position="right"))
+    tree_checkbox.add_widget(OCheckBox(tree_checkbox.content, text="Aligned Right (Icon Left)", align="right"))
+    tree_checkbox.add_widget(OCheckBox(tree_checkbox.content, text="Aligned Right (Icon Right)", icon_position="right", align="right"))
     main_group.layout_.addWidget(tree_checkbox)
     main_group.layout_.addWidget(OSeparator(main_group))
     
@@ -156,24 +217,24 @@ def main():
     # ORadioButton
     # -----------------------------------------------------------------------
     tree_radio = OTreeWidget(main_group, text="ORadioButton", expanded=False)
-    rb_group = OGroup(tree_radio.content, orientation="v")
+    rb_group = OGroup(tree_radio.content, orientation="h")
     
-    group_left = OGroup(rb_group, orientation="v")
+    group_left = OGroup(rb_group, orientation="v", width="50%")
     rb1_1 = ORadioButton(group_left, text="Option A1 (Icon Left)", icon_position="left")
     rb1_2 = ORadioButton(group_left, text="Option A2 (Icon Left)", icon_position="left")
     rb1_1.setChecked(True)
     group_left.layout_.addWidget(rb1_1, 0, Qt.AlignRight)
     group_left.layout_.addWidget(rb1_2, 0, Qt.AlignRight)
     
-    group_right = OGroup(rb_group, orientation="v")
+    group_right = OGroup(rb_group, orientation="v", width="50%")
     rb2_1 = ORadioButton(group_right, text="Option B1 (Icon Right)", icon_position="right")
     rb2_2 = ORadioButton(group_right, text="Option B2 (Icon Right)", icon_position="right")
     rb2_1.setChecked(True)
     group_right.layout_.addWidget(rb2_1, 0, Qt.AlignRight)
     group_right.layout_.addWidget(rb2_2, 0, Qt.AlignRight)
     
-    rb_group.layout_.addWidget(group_left, 0, Qt.AlignRight)
-    rb_group.layout_.addWidget(group_right, 0, Qt.AlignRight)
+    rb_group.layout_.addWidget(group_left)
+    rb_group.layout_.addWidget(group_right)
     tree_radio.add_widget(rb_group)
     main_group.layout_.addWidget(tree_radio)
     main_group.layout_.addWidget(OSeparator(main_group))
@@ -220,7 +281,7 @@ def main():
     # OFileItem
     # -----------------------------------------------------------------------
     tree_file = OTreeWidget(main_group, text="OFileItem", expanded=False)
-    file_item = OFileItem(tree_file.content, filepath="C:/example/report.pdf", filesize_str="2.4 MB")
+    file_item = OFileItem(tree_file.content, filepath="C:/example/cuanto tiempo se ve ni se siente esta es la verdad.pdf", filesize_str="2.4 MB")
     tree_file.add_widget(file_item)
     main_group.layout_.addWidget(tree_file)
     main_group.layout_.addWidget(OSeparator(main_group))

@@ -29,6 +29,7 @@ from .icons import (
 from ._utils import (
     get_global_stylesheet,
     _pixmap_to_data_url,
+    apply_layout_dimensions,
 )
 
 from .core import (
@@ -87,4 +88,4 @@ from .chat import (
 # Re-export QTreeWidgetItem for convenience (used in demo)
 from PySide6.QtWidgets import QTreeWidgetItem
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"

@@ -3,6 +3,7 @@ import re
 from typing import Optional, List, Dict, Any, Tuple, Union, Callable
 
 from PySide6.QtWidgets import (
+    QApplication,
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
@@ -43,14 +44,24 @@ from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER, _PAD
 from .icons import _get_cached_chevron
 from .core import OComboBox
 from .inputs import OTextBox
+from ._utils import apply_layout_dimensions
 
 
 # -----------------------------------------------------------------------------------------------------------
 # OScrollArea
 # ---------------------------------------------------------------------------
 class OScrollArea(QScrollArea):
-    def __init__(self, master: Optional[QWidget], **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = "auto",
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
+
+        apply_layout_dimensions(self, width, height)
+
         self.setWidgetResizable(True)
         self.setStyleSheet(f"""
             QScrollArea {{
@@ -62,7 +73,7 @@ class OScrollArea(QScrollArea):
                 background: transparent;
             }}
         """)
-        
+
     def pack(self, **kwargs: Any) -> None: pass
 
 # ---------------------------------------------------------------------------
@@ -170,7 +181,7 @@ class OTableItemDelegate(QStyledItemDelegate):
         kwargs = self.col_config.get("kwargs", {}).copy()
 
         if is_combo:
-            editor = OComboBox(parent, transparent=True, height=0)
+            editor = OComboBox(parent, transparent=True, height="auto")
             values = kwargs.get("values", [])
             editor.configure(values=values)
             
@@ -382,12 +393,13 @@ class _RNativeTableModel(QAbstractTableModel):
 class OVirtualTable(QTableView):
     def __init__(
         self,
-        master: Optional[QWidget],
+        master: Optional[QWidget] = None,
         columns: Tuple[str, ...] = ("Column 1",),
         column_widgets: Optional[List[Dict[str, Any]]] = None,
         hug: bool = True,
         visible_rows: Optional[int] = None,
         row_height: int = 24,
+        header_height: int = 28,
         flexible_height: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -400,6 +412,7 @@ class OVirtualTable(QTableView):
         self._hug = hug
         self.visible_rows = visible_rows
         self.row_height = row_height
+        self._header_height = header_height
 
         self.on_data_change = None
         self.on_textbox_enter = None
@@ -456,7 +469,7 @@ class OVirtualTable(QTableView):
                 background: {OMNINATIVE["background"]};
                 width: 8px;
                 border-radius: 4px;
-                margin-top: 28px;
+                margin-top: {header_height}px;
             }}
             QScrollBar::handle:vertical {{
                 background: {OMNINATIVE["accent"]};
@@ -471,15 +484,15 @@ class OVirtualTable(QTableView):
 
         self.horizontalHeader().setHighlightSections(False)
         self.verticalHeader().setVisible(False)
-        
+
         if self._hug:
             self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         else:
             self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-            
+
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().setDefaultAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        self.horizontalHeader().setFixedHeight(28)
+        self.horizontalHeader().setFixedHeight(header_height)
 
         self.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
@@ -535,11 +548,11 @@ class OVirtualTable(QTableView):
     def _update_height(self) -> None:
         if self._hug:
             row_count = self.model.rowCount()
-            total_h = 28 + (row_count * self._base_row_height) + 2
+            total_h = self._header_height + (row_count * self._base_row_height) + 2
         else:
             visible = self.visible_rows or 8
-            total_h = 28 + (visible * self._base_row_height) + 2
-            
+            total_h = self._header_height + (visible * self._base_row_height) + 2
+
         if self._flexible_height:
             self.setMinimumHeight(total_h)
             self.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)
@@ -606,94 +619,130 @@ class OVirtualTable(QTableView):
 # ---------------------------------------------------------------------------
 
 class OTreeWidget(QWidget):
-    def __init__(self, master: Optional[QWidget], text: str = "Label", expanded: bool = True, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        text: str = "Label",
+        expanded: bool = True,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = "auto",
+        header_height: int = 24,
+        icon_width: int = 14,
+        icon_height: int = 20,
+        header_spacing: int = 8,
+        indent: int = 20,
+        content_spacing: int = 5,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
+
+        apply_layout_dimensions(self, width, height)
+
+        self._icon_height = icon_height
+
         self.layout_ = QVBoxLayout(self)
         self.layout_.setContentsMargins(0, 0, 0, 0)
         self.layout_.setSpacing(0)
         self.layout_.setAlignment(Qt.AlignTop)
-        
+
         self.expanded = expanded
         self._hovered = False
-        
+
         # Header (Chevron + Label)
         self.header = QWidget()
-        self.header.setFixedHeight(24)
+        self.header.setFixedHeight(header_height)
         self.header.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.header_layout = QHBoxLayout(self.header)
         self.header_layout.setContentsMargins(0, 0, 0, 0)
-        self.header_layout.setSpacing(8)
+        self.header_layout.setSpacing(header_spacing)
         self.header_layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        
+
         self.icon_lbl = QLabel()
-        self.icon_lbl.setFixedSize(14, 20)
+        self.icon_lbl.setFixedSize(icon_width, icon_height)
         self.icon_lbl.setAlignment(Qt.AlignCenter)
         self.icon_lbl.setCursor(Qt.PointingHandCursor)
-        
+
         self.text_lbl = QLabel(text)
-        self.text_lbl.setFixedHeight(20)
+        self.text_lbl.setFixedHeight(icon_height)
         self.text_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM))
         self.text_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']};")
         self.text_lbl.setCursor(Qt.PointingHandCursor)
-        
+
         self.header_layout.addWidget(self.icon_lbl, 0, Qt.AlignVCenter)
         self.header_layout.addWidget(self.text_lbl, 0, Qt.AlignVCenter)
         self.header_layout.addStretch()
-        
+
         self.layout_.addWidget(self.header)
-        
+
         # Content Container
         self.content = QWidget()
         self.content_layout = QVBoxLayout(self.content)
-        self.content_layout.setContentsMargins(20, 5, 0, 0)
-        self.content_layout.setSpacing(5)
+        self.content_layout.setContentsMargins(indent, content_spacing, 0, 0)
+        self.content_layout.setSpacing(content_spacing)
         self.layout_.addWidget(self.content)
-        
+
         self.icon_lbl.mousePressEvent = self.toggle
         self.text_lbl.mousePressEvent = self.toggle
-        
+
         def on_enter(e):
             self._hovered = True
             self._update_icon()
         def on_leave(e):
             self._hovered = False
             self._update_icon()
-            
+
         self.header.enterEvent = on_enter
         self.header.leaveEvent = on_leave
-        
+
         self._update_icon()
         if not self.expanded:
             self.content.hide()
-            
+
     def toggle(self, event: Any = None) -> None:
         self.expanded = not self.expanded
         self.content.setVisible(self.expanded)
         self._update_icon()
-        
+
     def _update_icon(self) -> None:
         direction = "down" if self.expanded else "right"
         color = OMNINATIVE['bright'] if self._hovered else OMNINATIVE['accent']
-        pixmap = _get_cached_chevron(size=20, color=color, direction=direction, align="left")
+        pixmap = _get_cached_chevron(size=self._icon_height, color=color, direction=direction, align="left")
         self.icon_lbl.setPixmap(pixmap)
-        
+
     def add_widget(self, widget: QWidget) -> None:
         self.content_layout.addWidget(widget)
-        
+
     def pack(self, **kwargs: Any) -> None: pass
 
 # ---------------------------------------------------------------------------
 # OTabs
 # ---------------------------------------------------------------------------
 class OTabs(QWidget):
-    def __init__(self, master: Optional[QWidget], eager: bool = True, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        eager: bool = True,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = "auto",
+        header_height: int = 28,
+        header_pad: int = 3,
+        header_spacing: int = 4,
+        tab_button_height: int = 20,
+        content_gap: int = 10,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
+
+        apply_layout_dimensions(self, width, height)
+
+        self._tab_button_height = tab_button_height
+
         self.layout_ = QVBoxLayout(self)
         self.layout_.setContentsMargins(0, 0, 0, 0)
         self.layout_.setSpacing(0)
-        
+
         self.header_container = QFrame()
-        self.header_container.setFixedHeight(28)
+        self.header_container.setFixedHeight(header_height)
         self.header_container.setStyleSheet(f"""
             QFrame {{
                 background: {OMNINATIVE['background']};
@@ -702,25 +751,30 @@ class OTabs(QWidget):
             }}
         """)
         self.header_layout = QHBoxLayout(self.header_container)
-        self.header_layout.setContentsMargins(3, 3, 3, 3)
-        self.header_layout.setSpacing(4)
-        
+        self.header_layout.setContentsMargins(
+            header_pad,
+            header_pad,
+            header_pad,
+            header_pad,
+        )
+        self.header_layout.setSpacing(header_spacing)
+
         self.layout_.addWidget(self.header_container)
-        self.layout_.addSpacing(10)
-        
+        self.layout_.addSpacing(content_gap)
+
         self.stacked_widget = QStackedWidget()
         self.layout_.addWidget(self.stacked_widget)
-        
+
         self.tabs = {}
         self._active_tab = None
-        
+
     def add(self, name: str, on_first_activate: Optional[Callable[[QWidget], None]] = None) -> QWidget:
         page = QWidget()
         page_layout = QVBoxLayout(page)
         page_layout.setContentsMargins(0, 0, 0, 0)
-        
+
         btn = QPushButton(name)
-        btn.setFixedHeight(20)
+        btn.setFixedHeight(self._tab_button_height)
         btn.setCursor(Qt.PointingHandCursor)
         btn.setStyleSheet(f"""
             QPushButton {{
@@ -735,27 +789,27 @@ class OTabs(QWidget):
                 color: {OMNINATIVE['bright']};
             }}
         """)
-        
+
         btn.clicked.connect(lambda _, n=name: self.set_active(n))
         self.header_layout.addWidget(btn, 1)
-        
+
         self.stacked_widget.addWidget(page)
-        
+
         self.tabs[name] = {
             "page": page,
             "btn": btn,
             "on_first_activate": on_first_activate,
             "activated": on_first_activate is None
         }
-        
+
         if self._active_tab is None:
             self.set_active(name)
-            
+
         return page
-        
+
     def set_active(self, name: str) -> None:
         if name not in self.tabs: return
-        
+
         for t_name, info in self.tabs.items():
             if t_name == name:
                 info["btn"].setStyleSheet(f"""
@@ -796,5 +850,5 @@ class OTabs(QWidget):
                 info["activated"] = True
                 if info["on_first_activate"]:
                     info["on_first_activate"](info["page"])
-                    
+
     def pack(self, **kwargs: Any) -> None: pass

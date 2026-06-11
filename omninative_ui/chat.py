@@ -1,6 +1,6 @@
 # omninative_ui/chat.py
 import time
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Union
 
 from PySide6.QtWidgets import (
     QWidget,
@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QPushButton,
     QLineEdit,
+    QSizePolicy,
 )
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtCore import Qt, Signal, QTimer, QSize, QPoint
@@ -17,22 +18,35 @@ from PySide6.QtCore import Qt, Signal, QTimer, QSize, QPoint
 from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER
 from .icons import _get_cached_plus, _get_cached_arrow, _get_cached_chevron
 from .containers import OScrollArea
+from ._utils import apply_layout_dimensions
 
 
 # ---------------------------------------------------------------------------
 # OChatMessage
 # ---------------------------------------------------------------------------
 class OChatMessage(QFrame):
-    def __init__(self, role: str, content: str, parent: Optional[QWidget] = None) -> None:
+    def __init__(
+        self,
+        role: str,
+        content: str,
+        parent: Optional[QWidget] = None,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = "auto",
+        pad: int = 12,
+        spacing: int = 12,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(parent)
+        apply_layout_dimensions(self, width, height)
+
         self.role = role
         self.content = content
         
         self.setObjectName("chat_msg")
         
         self.layout_ = QHBoxLayout(self)
-        self.layout_.setContentsMargins(12, 12, 12, 12)
-        self.layout_.setSpacing(12)
+        self.layout_.setContentsMargins(pad, pad, pad, pad)
+        self.layout_.setSpacing(spacing)
         
         self.text_lbl = QLabel(content)
         self.text_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM))
@@ -58,8 +72,16 @@ class OChatMessage(QFrame):
 # OChatView
 # ---------------------------------------------------------------------------
 class OChatView(OScrollArea):
-    def __init__(self, master: Optional[QWidget], **kwargs: Any) -> None:
-        super().__init__(master, **kwargs)
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = "auto",
+        pad: int = 10,
+        spacing: int = 15,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(master, width=width, height=height, **kwargs)
         
         # Remove the outer border while preserving any scrollbar styles
         self.setStyleSheet(self.styleSheet() + " QScrollArea { border: none; background: transparent; }")
@@ -68,8 +90,8 @@ class OChatView(OScrollArea):
         self.container.setStyleSheet("background: transparent;")
         self.container_layout = QVBoxLayout(self.container)
         self.container_layout.setAlignment(Qt.AlignTop)
-        self.container_layout.setContentsMargins(10, 10, 10, 10)
-        self.container_layout.setSpacing(15)
+        self.container_layout.setContentsMargins(pad, pad, pad, pad)
+        self.container_layout.setSpacing(spacing)
         
         self.setWidget(self.container)
         self.setWidgetResizable(True)
@@ -116,30 +138,51 @@ class OChatInput(QFrame):
     submitted = Signal(str)
     add_clicked = Signal()
     
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(
+        self,
+        parent: Optional[QWidget] = None,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = 50,
+        pad_left: int = 15,
+        pad_right: int = 10,
+        pad_y: int = 0,
+        spacing: int = 10,
+        button_size: int = 30,
+        action_button_size: int = 34,
+        icon_size: int = 24,
+        action_icon_size: int = 20,
+        show_add: bool = True,
+        show_action: bool = True,
+        placeholder_text: str = "Pregunta lo que quieras",
+        **kwargs: Any,
+    ) -> None:
         super().__init__(parent)
+        apply_layout_dimensions(self, width, height)
+
         self.setObjectName("chat_input")
-        self.setFixedHeight(50)
-        self.setStyleSheet(f"#chat_input {{ background-color: {OMNINATIVE['dark']}; border-radius: 25px; }}")
+        radius = height // 2 if height > 0 else 25
+        self.setStyleSheet(f"#chat_input {{ background-color: {OMNINATIVE['dark']}; border-radius: {radius}px; }}")
         
         self.layout_ = QHBoxLayout(self)
-        self.layout_.setContentsMargins(15, 0, 10, 0)
-        self.layout_.setSpacing(10)
+        self.layout_.setContentsMargins(pad_left, pad_y, pad_right, pad_y)
+        self.layout_.setSpacing(spacing)
+        
+        self._icon_size = icon_size
         
         # Add button (+)
         self.btn_add = QPushButton()
-        self.btn_add.setFixedSize(30, 30)
-        self.btn_add.setIcon(QIcon(_get_cached_plus(size=24, color=OMNINATIVE['accent'], weight=1.5)))
-        self.btn_add.setIconSize(QSize(24, 24))
+        self.btn_add.setFixedSize(button_size, button_size)
+        self.btn_add.setIcon(QIcon(_get_cached_plus(size=icon_size, color=OMNINATIVE['accent'], weight=1.5)))
+        self.btn_add.setIconSize(QSize(icon_size, icon_size))
         self.btn_add.setStyleSheet(f"background: transparent; border: none;")
         self.btn_add.setCursor(Qt.PointingHandCursor)
         
         def _add_enter(event: Any) -> None:
-            self.btn_add.setIcon(QIcon(_get_cached_plus(size=24, color=OMNINATIVE['bright'], weight=1.5)))
+            self.btn_add.setIcon(QIcon(_get_cached_plus(size=self._icon_size, color=OMNINATIVE['bright'], weight=1.5)))
             QPushButton.enterEvent(self.btn_add, event)
             
         def _add_leave(event: Any) -> None:
-            self.btn_add.setIcon(QIcon(_get_cached_plus(size=24, color=OMNINATIVE['accent'], weight=1.5)))
+            self.btn_add.setIcon(QIcon(_get_cached_plus(size=self._icon_size, color=OMNINATIVE['accent'], weight=1.5)))
             QPushButton.leaveEvent(self.btn_add, event)
             
         self.btn_add.enterEvent = _add_enter
@@ -149,25 +192,26 @@ class OChatInput(QFrame):
         
         # Input Field
         self.input_field = QLineEdit()
-        self.input_field.setPlaceholderText("Pregunta lo que quieras")
+        self.input_field.setPlaceholderText(placeholder_text)
         self.input_field.setFont(QFont(_FONT_FAMILY, 10))
         self.input_field.setStyleSheet(f"color: {OMNINATIVE['bright']}; background: transparent; border: none;")
         self.input_field.returnPressed.connect(self._submit)
         
         # Action button (Arrow)
         self.btn_action = QPushButton()
-        self.btn_action.setFixedSize(34, 34)
-        self.btn_action.setIcon(QIcon(_get_cached_arrow(size=24, color=OMNINATIVE['gray'], direction="up", weight=2.0)))
-        self.btn_action.setIconSize(QSize(20, 20))
-        self.btn_action.setStyleSheet(f"QPushButton {{ background-color: {OMNINATIVE['bright']}; border-radius: 17px; border: none; }}")
+        self.btn_action.setFixedSize(action_button_size, action_button_size)
+        self.btn_action.setIcon(QIcon(_get_cached_arrow(size=icon_size, color=OMNINATIVE['gray'], direction="up", weight=2.0)))
+        self.btn_action.setIconSize(QSize(action_icon_size, action_icon_size))
+        action_radius = action_button_size // 2
+        self.btn_action.setStyleSheet(f"QPushButton {{ background-color: {OMNINATIVE['bright']}; border-radius: {action_radius}px; border: none; }}")
         self.btn_action.setCursor(Qt.PointingHandCursor)
         
         def _action_enter(event: Any) -> None:
-            self.btn_action.setIcon(QIcon(_get_cached_arrow(size=24, color=OMNINATIVE['background'], direction="up", weight=2.0)))
+            self.btn_action.setIcon(QIcon(_get_cached_arrow(size=self._icon_size, color=OMNINATIVE['background'], direction="up", weight=2.0)))
             QPushButton.enterEvent(self.btn_action, event)
             
         def _action_leave(event: Any) -> None:
-            self.btn_action.setIcon(QIcon(_get_cached_arrow(size=24, color=OMNINATIVE['gray'], direction="up", weight=2.0)))
+            self.btn_action.setIcon(QIcon(_get_cached_arrow(size=self._icon_size, color=OMNINATIVE['gray'], direction="up", weight=2.0)))
             QPushButton.leaveEvent(self.btn_action, event)
             
         self.btn_action.enterEvent = _action_enter
@@ -178,6 +222,11 @@ class OChatInput(QFrame):
         self.layout_.addWidget(self.btn_add)
         self.layout_.addWidget(self.input_field)
         self.layout_.addWidget(self.btn_action)
+
+        if not show_add:
+            self.btn_add.hide()
+        if not show_action:
+            self.btn_action.hide()
         
     def _on_action_clicked(self) -> None:
         self._submit()
@@ -200,24 +249,39 @@ class OChatInput(QFrame):
 class OActionMenuItem(QFrame):
     clicked = Signal(str)
     
-    def __init__(self, text: str, icon_char: Optional[str] = None, has_chevron: bool = False, parent: Optional[QWidget] = None) -> None:
+    def __init__(
+        self,
+        text: str,
+        icon_char: Optional[str] = None,
+        has_chevron: bool = False,
+        parent: Optional[QWidget] = None,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = 36,
+        pad_x: int = 10,
+        pad_y: int = 0,
+        spacing: int = 12,
+        icon_width: int = 24,
+        chevron_size: int = 14,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(parent)
+        apply_layout_dimensions(self, width, height)
+
         self.text_val = text
         self.setObjectName("action_item")
         self.setStyleSheet(f"#action_item {{ background-color: transparent; border-radius: 6px; }}")
-        self.setFixedHeight(36)
         self.setCursor(Qt.PointingHandCursor)
         
         self.layout_ = QHBoxLayout(self)
-        self.layout_.setContentsMargins(10, 0, 10, 0)
-        self.layout_.setSpacing(12)
+        self.layout_.setContentsMargins(pad_x, pad_y, pad_x, pad_y)
+        self.layout_.setSpacing(spacing)
         
         # Icon
         if icon_char:
             self.icon_lbl = QLabel(icon_char)
             self.icon_lbl.setFont(QFont(_FONT_FAMILY, 14))
             self.icon_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']}; background: transparent;")
-            self.icon_lbl.setFixedWidth(24)
+            self.icon_lbl.setFixedWidth(icon_width)
             self.icon_lbl.setAlignment(Qt.AlignCenter)
             self.layout_.addWidget(self.icon_lbl)
             
@@ -232,7 +296,7 @@ class OActionMenuItem(QFrame):
         # Chevron
         if has_chevron:
             self.chevron_lbl = QLabel()
-            self.chevron_lbl.setPixmap(_get_cached_chevron(size=14, color=OMNINATIVE['bright'], direction="right"))
+            self.chevron_lbl.setPixmap(_get_cached_chevron(size=chevron_size, color=OMNINATIVE['bright'], direction="right"))
             self.chevron_lbl.setStyleSheet("background: transparent;")
             self.layout_.addWidget(self.chevron_lbl)
             
@@ -256,8 +320,18 @@ class OActionMenuItem(QFrame):
 class OActionMenu(QWidget):
     action_triggered = Signal(str)
     
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(
+        self,
+        parent: Optional[QWidget] = None,
+        width: Union[int, str] = 280,
+        height: Union[int, str] = "auto",
+        pad: int = 6,
+        spacing: int = 2,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(parent)
+        apply_layout_dimensions(self, width, height)
+
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self._last_hide_time = 0.0
@@ -271,10 +345,8 @@ class OActionMenu(QWidget):
         self.main_layout.addWidget(self.container)
         
         self.layout_ = QVBoxLayout(self.container)
-        self.layout_.setContentsMargins(6, 6, 6, 6)
-        self.layout_.setSpacing(2)
-        
-        self.setFixedWidth(280)
+        self.layout_.setContentsMargins(pad, pad, pad, pad)
+        self.layout_.setSpacing(spacing)
         
     def add_action(self, text: str, icon_char: Optional[str] = None, has_chevron: bool = False) -> OActionMenuItem:
         item = OActionMenuItem(text, icon_char, has_chevron)

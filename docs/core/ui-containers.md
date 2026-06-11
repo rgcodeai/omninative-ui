@@ -13,57 +13,125 @@ Type: Component (QScrollArea)
 Description: Dynamic scrolling area. It will grow vertically as internal content requires, and disable horizontal scrolling, injecting clean margins and thin OmniNative-like scrollbars.
 
 #### Initialization (Props)
+
+**Layout & Dimensions:**
 | Prop | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `master` | `Optional[QWidget]` | | Parent container. |
+| `master` | `Optional[QWidget]` | `None` | Parent container. |
+| `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding, `"auto"` = Hug. |
+| `height` | `Union[int, str]` | `"auto"` | Fixed height. `"auto"` = Hug. |
 
 #### Key Methods & Properties
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `view` | Property | Returns the internal `QWidget`. It's fundamental to use `scroll.view.layout().addWidget(...)` in PySide6 to add elements to this container, or use its helper method `.add()`. |
-| `add(widget: QWidget, ...)`| Method | Optional helper method to add a widget to the vertical stack. |
+| `view` | Property | Returns the internal `QWidget`. Use `scroll.view.layout().addWidget(...)` in PySide6 to add elements. |
+| `add(widget: QWidget, ...)` | Method | Optional helper method to add a widget to the vertical stack. |
+
+#### Usage Examples
+
+```python
+# Default (fills parent width, auto height)
+scroll = OScrollArea(config_group)
+config_group.layout_.addWidget(scroll)
+
+# Fixed dimensions
+scroll = OScrollArea(config_group, width=300, height=400)
+```
 
 ---
 
 ### `OTreeWidget`
 
 Path: `omninative_ui/containers.py`
-Type: Component (QTreeWidget)
-Description: Hierarchical tree and list in table format, ideal for file explorers, grouped properties, and outline trees. Includes a custom transparent style for headers.
+Type: Component (QWidget)
+Description: Collapsible tree node with a chevron icon header and indented content area. Supports expand/collapse toggle with animated chevron direction. Use nested OTreeWidget instances for hierarchical structures.
 
 #### Initialization (Props)
+
+**Layout & Dimensions:**
 | Prop | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `master` | `Optional[QWidget]` | | Parent container. |
-| `columns` | `int` | `1` | Number of columns (if headers are not passed). |
-| `headers` | `Optional[List[str]]` | `None` | Header names. Implicitly sets the number of columns. |
-| `height` | `int` | `200` | Minimum height of the widget. |
+| `master` | `Optional[QWidget]` | `None` | Parent container. |
+| `text` | `str` | `"Label"` | Header text. |
+| `expanded` | `bool` | `True` | Initial expand/collapse state. |
+| `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding. |
+| `height` | `Union[int, str]` | `"auto"` | Fixed height. `"auto"` = Hug. |
+| `header_height` | `int` | `24` | Height of the clickable header row. |
+| `icon_width` | `int` | `14` | Width of the chevron icon area. |
+| `icon_height` | `int` | `20` | Height of the chevron icon (also used for text label height). |
+| `header_spacing` | `int` | `8` | Spacing between icon and text in header. |
+| `indent` | `int` | `20` | Left indentation of nested content. |
+| `content_spacing` | `int` | `5` | Spacing between child widgets in the content area. |
 
 #### Key Methods
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `add_item(parent, texts, icon) -> QTreeWidgetItem` | Method | `parent` is the root or parent sub-node (`None` if top-level). `texts` is the list of strings for each column. `icon` can be the name of a cached QIcon. Returns the created node. |
-| `clear()` | Method | Deletes all nodes from the tree. |
-| `set_column_width(col: int, width: int)` | Method | Sets the width of a specific column. |
+| `toggle(event)` | Method | Toggles expand/collapse state. |
+| `add_widget(widget: QWidget)` | Method | Adds a widget to the content area. |
+
+#### Usage Examples
+
+```python
+# Default tree node
+tree = OTreeWidget(config_group, text="Section A")
+tree.add_widget(OLabel(tree.content, text="Item 1"))
+tree.add_widget(OLabel(tree.content, text="Item 2"))
+config_group.layout_.addWidget(tree)
+
+# Compact tree (smaller indent, collapsed by default)
+tree = OTreeWidget(config_group, text="Advanced", expanded=False, indent=12, header_height=20)
+
+# Large header with wide spacing
+tree = OTreeWidget(config_group, text="Root Node", header_height=32, icon_height=24, header_spacing=12)
+```
 
 ---
 
 ### `OTabs`
 
 Path: `omninative_ui/containers.py`
-Type: Component (QTabWidget)
-Description: Tabbed container. Supports an elegant transition when switching panels and is styled to simulate modern dark tabs.
+Type: Component (QWidget)
+Description: Tabbed container with a pill-style header bar and stacked content pages. Supports lazy loading via `on_first_activate` callbacks.
 
 #### Initialization (Props)
+
+**Layout & Dimensions:**
 | Prop | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `master` | `Optional[QWidget]` | | Parent container. |
+| `master` | `Optional[QWidget]` | `None` | Parent container. |
+| `eager` | `bool` | `True` | Whether to eagerly load all tabs. |
+| `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding. |
+| `height` | `Union[int, str]` | `"auto"` | Fixed height. `"auto"` = Hug. |
+| `header_height` | `int` | `28` | Height of the tab header bar. |
+| `header_pad` | `int` | `3` | Internal padding of the header bar. |
+| `header_spacing` | `int` | `4` | Spacing between tab buttons. |
+| `tab_button_height` | `int` | `20` | Height of individual tab buttons. |
+| `content_gap` | `int` | `10` | Spacing between header bar and content area (section-level gap). |
 
 #### Key Methods
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `add(name: str) -> QWidget` | Method | Creates and registers a new tab with the given name and returns the internal `QWidget` of that tab. The desired layout must be attached to this returned widget. |
-| `set(name: str)` | Method | Programmatically switches to the tab that exactly matches the string `name`. |
+| `add(name: str, on_first_activate: Callable) -> QWidget` | Method | Creates a new tab and returns its page widget. |
+| `set_active(name: str)` | Method | Programmatically switches to the named tab. |
+| `preload(name: str)` | Method | Triggers lazy-load callback without switching to the tab. |
+
+#### Usage Examples
+
+```python
+# Default tabs
+tabs = OTabs(config_group)
+page1 = tabs.add("General")
+page2 = tabs.add("Advanced")
+config_group.layout_.addWidget(tabs)
+
+# Compact tabs (smaller header)
+tabs = OTabs(config_group, header_height=22, tab_button_height=16, header_pad=2, content_gap=5)
+
+# Tabs with lazy loading
+def load_settings(page):
+    page.layout().addWidget(OLabel(page, text="Settings loaded!"))
+tabs.add("Settings", on_first_activate=load_settings)
+```
 
 ---
 
@@ -71,25 +139,50 @@ Description: Tabbed container. Supports an elegant transition when switching pan
 
 Path: `omninative_ui/containers.py`
 Type: Component (QTableView)
-Description: Native table based on the Model/View (MVC) pattern and virtualization (`_RNativeTableModel` + `OTableItemDelegate`). Unlike QTableWidget, it can handle 100,000+ rows and render native embedded controls (real Buttons and CheckBoxes by intercepting clicks on cells).
+Description: Native table based on the Model/View (MVC) pattern and virtualization (`_RNativeTableModel` + `OTableItemDelegate`). Can handle 100,000+ rows and render native embedded controls (real Buttons and CheckBoxes by intercepting clicks on cells).
 
 #### Initialization (Props)
+
+**Layout & Dimensions:**
 | Prop | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `master` | `Optional[QWidget]` | | Parent container. |
-| `headers` | `List[str]` | | Table columns (e.g., `["ID", "Name", "Active", "Action"]`). |
-| `get_data_cb` | `Callable[[], List[Dict]]`| | Callback that returns the in-memory data. Dictionary example: `{"ID": 1, "Name": "A", "Active": {"type": "checkbox", "value": True}}` |
-| `update_item_cb`| `Optional[Callable]` | `None` | `(row_idx, col_name, new_val) -> None`. Callback when the user changes a value or embedded checkbox. |
-| `action_cb` | `Optional[Callable]` | `None` | `(action_name, row_idx) -> None`. Callback if an embedded button is drawn and clicked. |
-| `height` | `int` | `300` | Recommended minimum height of the view. |
+| `master` | `Optional[QWidget]` | `None` | Parent container. |
+| `columns` | `Tuple[str, ...]` | `("Column 1",)` | Column header names. |
+| `column_widgets` | `Optional[List[Dict]]` | `None` | Per-column widget configuration (class, kwargs, weight). |
+| `hug` | `bool` | `True` | If `True`, table height auto-hugs the row count (no scrollbar). |
+| `visible_rows` | `Optional[int]` | `None` | Number of visible rows when `hug=False`. Defaults to 8. |
+| `row_height` | `int` | `24` | Height of each row. |
+| `header_height` | `int` | `28` | Height of the column header. |
+| `flexible_height` | `bool` | `False` | If `True`, rows stretch to fill available height. |
 
 #### Internal Cell Types (Delegates)
-To draw native controls inside cells, `get_data_cb` must return a dictionary in the column value instead of a primitive, using the following keywords:
-- `{"type": "checkbox", "value": bool}` -> Paints a real and editable OTableCheckBox.
-- `{"type": "button", "label": "Delete"}` -> Paints an OButton.
-- Primitives (str, int) will be painted as a traditional Label.
+To draw native controls inside cells, `column_widgets` uses the `class` key:
+- `"QLabel"` → Painted as a traditional Label (default).
+- `"OComboBox"` → Persistent combo editor.
+- `"OTextBox"` → Multi-line text editor.
 
 #### Key Methods
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `refresh()` | Method | Requests repainting the view because the original internal data changed. |
+| `update_data(data: List[Tuple])` | Method | Replaces all row data and refreshes the view. |
+| `scroll_to_index(index: int)` | Method | Scrolls to the specified row index. |
+| `focus_row(row, col, cursor_pos)` | Method | Activates editing on a specific cell. |
+
+#### Usage Examples
+
+```python
+# Basic table
+table = OVirtualTable(
+    config_group,
+    columns=("ID", "Name", "Status"),
+    row_height=28,
+)
+table.update_data([(1, "Item A", "Active"), (2, "Item B", "Inactive")])
+config_group.layout_.addWidget(table)
+
+# Table with custom header height
+table = OVirtualTable(config_group, columns=("A", "B"), header_height=32, row_height=30)
+
+# Non-hug scrollable table
+table = OVirtualTable(config_group, columns=("Log",), hug=False, visible_rows=10)
+```

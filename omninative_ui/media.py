@@ -1,7 +1,7 @@
 # omninative_ui/media.py
 import os
 import time
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
@@ -19,60 +19,95 @@ from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER, _PAD
 from .icons import _get_cached_audio_icon, _get_cached_file_icon
 from .core import OButton, OElidedLabel
 from .inputs import _WheelIgnoredSlider
+from ._utils import apply_layout_dimensions
 
 
 # ---------------------------------------------------------------------------
 # OAudioButton
 # ---------------------------------------------------------------------------
 class OAudioButton(QPushButton):
+    _PULSE_STEPS = 45  # Ticks per full cycle (~1.5s at 33ms)
+    _PULSE_LEVELS = 20  # Quantization levels to limit icon cache
+
     def __init__(self, master: Optional[QWidget], icon_type: str, size: int = 24, **kwargs: Any) -> None:
         super().__init__(master)
         self.icon_type = icon_type
         self.size_val = size
         self.is_active = False
-        
+
         self.setFixedSize(size, size)
         self.setCursor(Qt.PointingHandCursor)
-        
+
         self.setMouseTracking(True)
         self._hovered = False
-        
+        self._pulse_phase = 0
+
+        self._pulse_timer = QTimer(self)
+        self._pulse_timer.setInterval(33)
+        self._pulse_timer.timeout.connect(self._on_pulse_tick)
+
         self.update_icon()
-        
+
+    @staticmethod
+    def _lerp_color(hex_a: str, hex_b: str, t: float) -> str:
+        ca, cb = QColor(hex_a), QColor(hex_b)
+        r = int(ca.red()   + (cb.red()   - ca.red())   * t)
+        g = int(ca.green() + (cb.green() - ca.green()) * t)
+        b = int(ca.blue()  + (cb.blue()  - ca.blue())  * t)
+        return f"#{r:02x}{g:02x}{b:02x}"
+
+    def _pulse_factor(self) -> float:
+        import math
+        raw = (math.sin(self._pulse_phase * 2.0 * math.pi / self._PULSE_STEPS) + 1.0) / 2.0
+        return round(raw * self._PULSE_LEVELS) / self._PULSE_LEVELS
+
+    def _on_pulse_tick(self) -> None:
+        self._pulse_phase += 1
+        self.update_icon()
+
     def set_active(self, active: bool) -> None:
         self.is_active = active
+        if active and self.icon_type == "mic":
+            self._pulse_phase = 0
+            self._pulse_timer.start()
+        else:
+            self._pulse_timer.stop()
         self.update_icon()
-        
+
     def enterEvent(self, event: Any) -> None:
         self._hovered = True
         self.update_icon()
         super().enterEvent(event)
-        
+
     def leaveEvent(self, event: Any) -> None:
         self._hovered = False
         self.update_icon()
         super().leaveEvent(event)
-        
+
     def update_icon(self) -> None:
         if self.is_active:
             if self.icon_type == "mic":
-                color = OMNINATIVE["danger"]
+                t = self._pulse_factor()
+                color = self._lerp_color(OMNINATIVE["primary"], OMNINATIVE["bright"], t)
             else:
                 color = OMNINATIVE["primary"]
         elif self._hovered:
             color = OMNINATIVE["primary"]
         else:
             color = OMNINATIVE["accent"]
-            
+
         pix = _get_cached_audio_icon(self.icon_type, size=self.size_val, color=color)
         self.setIcon(QIcon(pix))
         self.setIconSize(QSize(self.size_val, self.size_val))
-        
+
         bg = OMNINATIVE["dark"]
         border_color = OMNINATIVE["accent"]
-        if self._hovered:
+        if self.is_active and self.icon_type == "mic":
+            t = self._pulse_factor()
+            border_color = self._lerp_color(OMNINATIVE["primary"], OMNINATIVE["bright"], t)
+        elif self._hovered:
             border_color = OMNINATIVE["primary"]
-            
+
         cr = self.size_val // 2
         self.setStyleSheet(f"""
             QPushButton {{
@@ -93,18 +128,34 @@ class OAudioButton(QPushButton):
 class OAudioWaveform(QWidget):
     seek_requested = Signal(float)  # Emits playback ratio (0.0 to 1.0)
     
-    def __init__(self, master: Optional[QWidget] = None, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        min_height: int = 60,
+        bar_width: int = 2,
+        bar_spacing: int = 1,
+        bar_corner_radius: int = 1,
+        playhead_width: int = 2,
+        height_ratio: float = 0.8,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
-        self.setMinimumHeight(60)
+        self._bar_width = bar_width
+        self._bar_spacing = bar_spacing
+        self._bar_corner_radius = bar_corner_radius
+        self._playhead_width = playhead_width
+        self._height_ratio = height_ratio
+
+        self.setMinimumHeight(min_height)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        
+
         self.playback_ratio = 0.0
         self.peaks = []
-        
+
         self.hover_x = -1
         self.is_hovered = False
         self.is_dragging = False
-        
+
         self.setMouseTracking(True)
         
     def generate_dummy_peaks(self, num_peaks: int = 120) -> None:
@@ -189,8 +240,8 @@ class OAudioWaveform(QWidget):
             painter.end()
             return
             
-        bar_w = 2
-        bar_spacing = 1
+        bar_w = self._bar_width
+        bar_spacing = self._bar_spacing
         max_bars = max(1, w // (bar_w + bar_spacing))
         
         display_peaks = self.peaks
@@ -232,17 +283,17 @@ class OAudioWaveform(QWidget):
             color = played_color if is_played else unplayed_color
             
             # Draw vertical bar symmetric to center
-            bar_h = max(3, int(h * 0.8 * peak))
+            bar_h = max(3, int(h * self._height_ratio * peak))
             y_top = (h - bar_h) // 2
             
             # Draw with rounded corners
             painter.setBrush(QBrush(color))
             painter.setPen(Qt.NoPen)
-            painter.drawRoundedRect(QRect(int(bar_x), int(y_top), max(1, int(bar_w)), int(bar_h)), 1, 1)
+            painter.drawRoundedRect(QRect(int(bar_x), int(y_top), max(1, int(bar_w)), int(bar_h)), self._bar_corner_radius, self._bar_corner_radius)
             
         # Draw playhead line
         playhead_x = int(self.playback_ratio * w)
-        painter.setPen(QPen(QColor(OMNINATIVE["primary"]), 2))
+        painter.setPen(QPen(QColor(OMNINATIVE["primary"]), self._playhead_width))
         painter.drawLine(playhead_x, 0, playhead_x, h)
         
         # Draw playhead top handle
@@ -294,22 +345,37 @@ class OAudioWaveform(QWidget):
 class OAudioPlayer(QWidget):
     file_loaded = Signal(str)  # Emits absolute filepath when an audio is loaded
 
-    def __init__(self, master: Optional[QWidget] = None, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = "auto",
+        pad: int = 0,
+        spacing: int = 10,
+        button_size: int = 24,
+        volume_slider_width: int = 70,
+        default_volume: int = 80,
+        show_record: bool = True,
+        show_load: bool = True,
+        show_volume: bool = True,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        
+
+        apply_layout_dimensions(self, width, height)
+
         # Main layout
         self.layout_ = QVBoxLayout(self)
-        self.layout_.setContentsMargins(8, 8, 8, 8)
-        self.layout_.setSpacing(6)
-        
+        self.layout_.setContentsMargins(pad, pad, pad, pad)
+        self.layout_.setSpacing(spacing)
+
         # State
         self.current_filepath = None
-        self.duration = 0.0  # Duration in seconds
-        self.position = 0.0  # Position in seconds
+        self.duration = 0.0
+        self.position = 0.0
         self.is_playing = False
         self.is_looping = False
-        
+
         # Native media player support (QtMultimedia)
         self.media_player = None
         self.audio_output = None
@@ -323,13 +389,13 @@ class OAudioPlayer(QWidget):
             self.media_player = QMediaPlayer()
             self.audio_output = QAudioOutput()
             self.media_player.setAudioOutput(self.audio_output)
-            
+
             self.capture_session = QMediaCaptureSession()
             self.audio_input = QAudioInput()
             self.capture_session.setAudioInput(self.audio_input)
             self.media_recorder = QMediaRecorder()
             self.capture_session.setRecorder(self.media_recorder)
-            
+
             # Connect signals
             self.media_player.positionChanged.connect(self._on_media_position_changed)
             self.media_player.durationChanged.connect(self._on_media_duration_changed)
@@ -337,62 +403,66 @@ class OAudioPlayer(QWidget):
             self.media_recorder.recorderStateChanged.connect(self._on_recorder_state_changed)
         except Exception as e:
             print(f"QtMultimedia not fully loaded: {e}. Simulation mode enabled.")
-            
+
         # Simulation Timer
         self.sim_timer = QTimer(self)
-        self.sim_timer.setInterval(16)  # ~60 fps
+        self.sim_timer.setInterval(16)
         self.sim_timer.timeout.connect(self._on_sim_timeout)
         self.last_tick_time = 0.0
-        
+
         # Top Bar
         self.top_bar = QWidget()
         self.top_layout = QHBoxLayout(self.top_bar)
         self.top_layout.setContentsMargins(0, 0, 0, 0)
-        self.top_layout.setSpacing(8)
-        
+        self.top_layout.setSpacing(5)
+
         self.title_lbl = OElidedLabel("No Audio Loaded")
         self.title_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM, QFont.Bold))
         self.title_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']};")
-        
+
         self.load_btn = OButton(self.top_bar, text="Load File", command=self._open_file_dialog)
-        
+        if not show_load:
+            self.load_btn.hide()
+
         self.top_layout.addWidget(self.title_lbl, 1)
         self.top_layout.addWidget(self.load_btn)
         self.layout_.addWidget(self.top_bar)
-        
+
         # Middle Waveform
         self.waveform = OAudioWaveform(self)
         self.waveform.seek_requested.connect(self.seek_to_ratio)
         self.layout_.addWidget(self.waveform)
-        
+
         # Bottom Controls
         self.controls_bar = QWidget()
         self.controls_layout = QHBoxLayout(self.controls_bar)
         self.controls_layout.setContentsMargins(0, 0, 0, 0)
-        self.controls_layout.setSpacing(10)
-        
-        self.record_btn = OAudioButton(self.controls_bar, "mic", size=24)
+        self.controls_layout.setSpacing(5)
+
+        self.record_btn = OAudioButton(self.controls_bar, "mic", size=button_size)
         self.record_btn.clicked.connect(self.toggle_record)
-        
-        self.play_btn = OAudioButton(self.controls_bar, "play", size=24)
+        if not show_record:
+            self.record_btn.hide()
+
+        self.play_btn = OAudioButton(self.controls_bar, "play", size=button_size)
         self.play_btn.clicked.connect(self.toggle_play)
-        
-        self.stop_btn = OAudioButton(self.controls_bar, "stop", size=24)
+
+        self.stop_btn = OAudioButton(self.controls_bar, "stop", size=button_size)
         self.stop_btn.clicked.connect(self.stop)
-        
+
         self.time_lbl = QLabel("00:00 / 00:00")
         self.time_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM))
         self.time_lbl.setStyleSheet(f"color: {OMNINATIVE['accent']};")
-        
+
         self.vol_icon = QLabel()
         self.vol_icon.setFixedSize(20, 20)
         self.vol_icon.setAlignment(Qt.AlignCenter)
         self.vol_icon.setStyleSheet("background: transparent;")
-        
+
         self.vol_slider = _WheelIgnoredSlider(Qt.Horizontal)
         self.vol_slider.setRange(0, 100)
-        self.vol_slider.setValue(80)
-        self.vol_slider.setFixedWidth(70)
+        self.vol_slider.setValue(default_volume)
+        self.vol_slider.setFixedWidth(volume_slider_width)
         self.vol_slider.setCursor(Qt.PointingHandCursor)
         self.vol_slider.setStyleSheet(f"""
             QSlider::groove:horizontal {{
@@ -416,19 +486,25 @@ class OAudioPlayer(QWidget):
             }}
         """)
         self.vol_slider.valueChanged.connect(self.set_volume)
+
+        if not show_volume:
+            self.vol_icon.hide()
+            self.vol_slider.hide()
+
+        self.controls_layout.addWidget(self.time_lbl)
+        self.controls_layout.addStretch(1)
         self.controls_layout.addWidget(self.play_btn)
         self.controls_layout.addWidget(self.record_btn)
         self.controls_layout.addWidget(self.stop_btn)
-        self.controls_layout.addWidget(self.time_lbl)
         self.controls_layout.addStretch(1)
         self.controls_layout.addWidget(self.vol_icon)
         self.controls_layout.addWidget(self.vol_slider)
-        
+
         self.layout_.addWidget(self.controls_bar)
-        
+
         # Initial updates
         self.update_time_label()
-        self.set_volume(80)
+        self.set_volume(default_volume)
         
     def _open_file_dialog(self) -> None:
         from PySide6.QtWidgets import QFileDialog
@@ -780,36 +856,57 @@ class OFullscreenViewer(QDialog):
 class OImageViewer(QWidget):
     file_loaded = Signal(str)
 
-    def __init__(self, master: Optional[QWidget] = None, height: int = 260, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget] = None,
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = 260,
+        pad: int = 8,
+        spacing: int = 0,
+        thumbnail_size: int = 35,
+        thumbnail_spacing: int = 8,
+        thumbnail_strip_height: int = 50,
+        show_download: bool = True,
+        show_load: bool = True,
+        show_thumbnails: bool = True,
+        placeholder_text: str = "",
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
-        self.setMinimumHeight(height)
-        
+        self._thumbnail_size = thumbnail_size
+        self._show_thumbnails = show_thumbnails
+        self._show_download = show_download
+        self._placeholder_text = placeholder_text or "Click 'Load' to add images"
+
+        apply_layout_dimensions(self, width, height)
+
         self.images = []
         self.current_index = -1
-        
+
         self.layout_ = QVBoxLayout(self)
-        self.layout_.setContentsMargins(8, 8, 8, 8)
-        self.layout_.setSpacing(0)
-        
+        self.layout_.setContentsMargins(pad, pad, pad, pad)
+        self.layout_.setSpacing(spacing)
+
         # Top Bar
         self.top_bar = QWidget()
         self.top_layout = QHBoxLayout(self.top_bar)
         self.top_layout.setContentsMargins(0, 0, 0, 0)
         self.top_layout.setSpacing(8)
-        
+
         self.title_lbl = OElidedLabel("No Image")
         self.title_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM, QFont.Bold))
         self.title_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']};")
-        
+
         self.download_btn = OButton(self.top_bar, text="Download", command=self.download_current)
         self.load_btn = OButton(self.top_bar, text="Load", command=self._open_file_dialog)
-        
+        if not show_load:
+            self.load_btn.hide()
+
         self.top_layout.addWidget(self.title_lbl, 1)
         self.top_layout.addWidget(self.download_btn)
         self.top_layout.addWidget(self.load_btn)
         self.layout_.addWidget(self.top_bar)
-        
+
         # Image Area
         self.image_container = QFrame()
         self.image_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -817,7 +914,7 @@ class OImageViewer(QWidget):
         self.image_container.setStyleSheet(f"background-color: {OMNINATIVE['dark']}; border: 1px solid {OMNINATIVE['gray']}; border-radius: {_CORNER}px; margin-top: 7px; margin-bottom: 5px;")
         self.image_layout = QVBoxLayout(self.image_container)
         self.image_layout.setContentsMargins(4, 4, 4, 4)
-        
+
         self.image_lbl = QLabel("Click to open Fullscreen")
         self.image_lbl.setAlignment(Qt.AlignCenter)
         self.image_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
@@ -826,30 +923,30 @@ class OImageViewer(QWidget):
         self.image_lbl.mousePressEvent = self._on_image_click
         self.image_lbl.mouseMoveEvent = self._on_image_mouse_move
         self.image_layout.addWidget(self.image_lbl)
-        
+
         self.layout_.addWidget(self.image_container, 1)
-        
+
         self.thumbnails_container = QFrame()
-        self.thumbnails_container.setFixedHeight(50)
+        self.thumbnails_container.setFixedHeight(thumbnail_strip_height)
         self.thumbnails_container.setStyleSheet(f"background-color: {OMNINATIVE['dark']}; border: 1px solid {OMNINATIVE['gray']}; border-radius: {_CORNER}px;")
         self.thumbnails_container_layout = QVBoxLayout(self.thumbnails_container)
         self.thumbnails_container_layout.setContentsMargins(0, 0, 0, 0)
-        
+
         self.thumbnails_scroll = QScrollArea()
         self.thumbnails_scroll.setWidgetResizable(True)
         self.thumbnails_scroll.setStyleSheet("background: transparent; border: none;")
         self.thumbnails_container_layout.addWidget(self.thumbnails_scroll)
-        
+
         self.thumbnails_widget = QWidget()
         self.thumbnails_widget.setStyleSheet("background: transparent;")
         self.thumbnails_layout = QHBoxLayout(self.thumbnails_widget)
         self.thumbnails_layout.setContentsMargins(4, 4, 4, 4)
-        self.thumbnails_layout.setSpacing(8)
+        self.thumbnails_layout.setSpacing(thumbnail_spacing)
         self.thumbnails_layout.setAlignment(Qt.AlignLeft)
         self.thumbnails_scroll.setWidget(self.thumbnails_widget)
         self.layout_.addWidget(self.thumbnails_container)
         self.thumbnails_container.hide()
-        
+
         self._update_controls()
         
     def _open_file_dialog(self) -> None:
@@ -917,7 +1014,10 @@ class OImageViewer(QWidget):
                 
     def _update_controls(self) -> None:
         has_images = len(self.images) > 0
-        self.download_btn.setVisible(has_images)
+        if self._show_download:
+            self.download_btn.setVisible(has_images)
+        else:
+            self.download_btn.hide()
         
     def _rebuild_thumbnails(self) -> None:
         while self.thumbnails_layout.count():
@@ -925,18 +1025,23 @@ class OImageViewer(QWidget):
             if item.widget():
                 item.widget().deleteLater()
                 
-        if len(self.images) <= 1:
+        if len(self.images) <= 1 or not self._show_thumbnails:
             self.thumbnails_container.hide()
             return
             
         self.thumbnails_container.show()
         for idx, img_data in enumerate(self.images):
             thumb_lbl = QLabel()
-            thumb_lbl.setFixedSize(35, 35)
+            thumb_lbl.setFixedSize(self._thumbnail_size, self._thumbnail_size)
             thumb_lbl.setCursor(Qt.PointingHandCursor)
             
             pixmap = img_data["pixmap"]
-            scaled = pixmap.scaled(35, 35, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+            scaled = pixmap.scaled(
+                self._thumbnail_size,
+                self._thumbnail_size,
+                Qt.KeepAspectRatioByExpanding,
+                Qt.SmoothTransformation,
+            )
             
             from PySide6.QtGui import QPainter, QPainterPath, QPixmap
             rounded = QPixmap(scaled.size())
@@ -990,7 +1095,7 @@ class OImageViewer(QWidget):
         else:
             self.title_lbl.setText("No Image")
             self.image_lbl.clear()
-            self.image_lbl.setText("Click 'Load' to add images")
+            self.image_lbl.setText(self._placeholder_text)
             
     def resizeEvent(self, event: Any) -> None:
         super().resizeEvent(event)
@@ -1037,14 +1142,31 @@ class OFileItem(QFrame):
     open_requested = Signal(str)
     save_requested = Signal(str)
 
-    def __init__(self, master: Optional[QWidget], filepath: str, filename: str = "", filesize_str: str = "", **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget],
+        filepath: str,
+        filename: str = "",
+        filesize_str: str = "",
+        width: Union[int, str] = "100%",
+        height: Union[int, str] = 50,
+        pad: int = 12,
+        pad_y: int = 8,
+        spacing: int = 12,
+        icon_size: int = 24,
+        button_width: int = 60,
+        button_height: int = 24,
+        button_spacing: int = 5,
+        show_open: bool = True,
+        show_save: bool = True,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(master)
         self.filepath = filepath
         self.filename = filename or os.path.basename(filepath)
-        
-        self.setFixedHeight(50)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        
+
+        apply_layout_dimensions(self, width, height)
+
         # Style as a card
         self.setStyleSheet(f"""
             OFileItem {{
@@ -1056,49 +1178,65 @@ class OFileItem(QFrame):
                 border: 1px solid {OMNINATIVE['primary']};
             }}
         """)
-        
+
         self.layout_ = QHBoxLayout(self)
-        self.layout_.setContentsMargins(12, 8, 12, 8)
-        self.layout_.setSpacing(12)
-        
+        self.layout_.setContentsMargins(pad, pad_y, pad, pad_y)
+        self.layout_.setSpacing(spacing)
+
         # Icon
         self.icon_lbl = QLabel()
-        self.icon_lbl.setFixedSize(24, 24)
+        self.icon_lbl.setFixedSize(icon_size, icon_size)
         self.icon_lbl.setAlignment(Qt.AlignCenter)
         self.icon_lbl.setStyleSheet("background: transparent; border: none;")
-        pix = _get_cached_file_icon(size=24, color=OMNINATIVE["primary"])
+        pix = _get_cached_file_icon(size=icon_size, color=OMNINATIVE["primary"])
         self.icon_lbl.setPixmap(pix)
-        
+
         # Text details
         self.text_layout = QVBoxLayout()
         self.text_layout.setContentsMargins(0, 0, 0, 0)
         self.text_layout.setSpacing(2)
-        
-        self.name_lbl = QLabel(self.filename)
+
+        self.name_lbl = OElidedLabel(self.filename)
         self.name_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM, QFont.Bold))
         self.name_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']}; background: transparent; border: none;")
-        
+        self.name_lbl._elide_text = lambda: QLabel.setText(
+            self.name_lbl,
+            self.name_lbl.fontMetrics().elidedText(
+                self.name_lbl._full_text,
+                Qt.ElideMiddle,
+                self.name_lbl.width(),
+            ),
+        )
+
         self.size_lbl = QLabel(filesize_str)
         self.size_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM - 2))
         self.size_lbl.setStyleSheet(f"color: {OMNINATIVE['accent']}; background: transparent; border: none;")
-        
+
         self.text_layout.addWidget(self.name_lbl)
         self.text_layout.addWidget(self.size_lbl)
-        
+
         # Action Buttons
         self.open_btn = OButton(self, text="Open", variant="secondary")
-        self.open_btn.setFixedSize(60, 24)
+        self.open_btn.setFixedSize(button_width, button_height)
         self.open_btn.clicked.connect(self._on_open)
-        
+        if not show_open:
+            self.open_btn.hide()
+
         self.save_btn = OButton(self, text="Save", variant="primary")
-        self.save_btn.setFixedSize(60, 24)
+        self.save_btn.setFixedSize(button_width, button_height)
         self.save_btn.clicked.connect(self._on_save)
-        
+        if not show_save:
+            self.save_btn.hide()
+
         self.layout_.addWidget(self.icon_lbl)
-        self.layout_.addLayout(self.text_layout)
-        self.layout_.addStretch(1)
-        self.layout_.addWidget(self.open_btn)
-        self.layout_.addWidget(self.save_btn)
+        self.layout_.addLayout(self.text_layout, 1)
+
+        self.buttons_layout = QHBoxLayout()
+        self.buttons_layout.setContentsMargins(0, 0, 0, 0)
+        self.buttons_layout.setSpacing(button_spacing)
+        self.buttons_layout.addWidget(self.open_btn)
+        self.buttons_layout.addWidget(self.save_btn)
+        self.layout_.addLayout(self.buttons_layout)
         
     def _on_open(self) -> None:
         self.open_requested.emit(self.filepath)

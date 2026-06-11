@@ -10,7 +10,7 @@ from omninative_ui import (
     OComboBox, OCheckBox, OLineEdit, OTextBox, OSpinBox, OScrollArea, 
     OVirtualTable, OStatusBar, OSlider, OTabs, OSeparator, ORadioButton,
     OTreeWidget, QTreeWidgetItem, OOptionRow, OAudioPlayer, OProgressBar, OFileItem,
-    OImageViewer, OChatView, OChatInput, OActionMenu
+    OImageViewer, OChatView, OChatInput, OActionMenu, OAudioRecorderOverlay, OHotkeyInput
 )
 
 def main():
@@ -147,6 +147,16 @@ def main():
     ro_edit.set("Contenido de solo lectura")
     tree_lineedit.add_widget(ro_edit)
     main_group.layout_.addWidget(tree_lineedit)
+    main_group.layout_.addWidget(OSeparator(main_group))
+    
+    # -----------------------------------------------------------------------
+    # OHotkeyInput
+    # -----------------------------------------------------------------------
+    tree_hotkey = OTreeWidget(main_group, text="OHotkeyInput", expanded=False)
+    demo_hotkey = OHotkeyInput(tree_hotkey.content, width="100%")
+    demo_hotkey.set("alt+f")
+    tree_hotkey.add_widget(demo_hotkey)
+    main_group.layout_.addWidget(tree_hotkey)
     main_group.layout_.addWidget(OSeparator(main_group))
     
     # -----------------------------------------------------------------------
@@ -458,6 +468,53 @@ def main():
     
     tree_dialogs.add_widget(dialog_grid_widget)
     main_group.layout_.addWidget(tree_dialogs)
+    main_group.layout_.addWidget(OSeparator(main_group))
+    
+    # -----------------------------------------------------------------------
+    # OAudioRecorderOverlay (Global Hotkey & Inline Preview)
+    # -----------------------------------------------------------------------
+    tree_overlay = OTreeWidget(main_group, text="OAudioRecorderOverlay (Preview)", expanded=False)
+    
+    # Inline preview of the overlay (strip floating flags to embed it)
+    inline_recorder = OAudioRecorderOverlay(tree_overlay.content, auto_start=False)
+    inline_recorder.setWindowFlags(Qt.Widget)  # Make it a normal child widget
+    inline_recorder.setAttribute(Qt.WA_TranslucentBackground, False) # Fix black bg
+    inline_recorder.setStyleSheet(f"background-color: {OMNINATIVE['dark']}; border-radius: 25px;")
+    inline_recorder.show() # Force it to show inside the layout
+    inline_recorder.recording_finished.connect(lambda path: print(f"Inline Audio saved to: {path}"))
+    
+    # We must wrap it to center it visually
+    wrap = OGroup(tree_overlay.content, orientation="h")
+    wrap.layout_.addStretch()
+    wrap.layout_.addWidget(inline_recorder)
+    wrap.layout_.addStretch()
+    
+    tree_overlay.add_widget(wrap)
+    main_group.layout_.addWidget(tree_overlay)
+    main_group.layout_.addWidget(OSeparator(main_group))
+    
+    recorder_overlay = OAudioRecorderOverlay(window)
+    # Set a global hotkey to show/hide the floating recording overlay
+    recorder_overlay.set_hotkey("ctrl+shift+r")
+    recorder_overlay.recording_finished.connect(lambda path: print(f"Audio saved to: {path}"))
+    
+    # Interactive Hotkey Configurator
+    hotkey_row = OGroup(main_group, orientation="h")
+    
+    hotkey_lbl = OLabel(hotkey_row, text="Change Recorder Hotkey:", bold=True)
+    
+    hotkey_input = OHotkeyInput(hotkey_row, width=150)
+    hotkey_input.set("ctrl+shift+r")
+    hotkey_input.bind(None, lambda val: recorder_overlay.set_hotkey(val) if val else None)
+    
+    # Use the callback property
+    hotkey_input._command = lambda val: recorder_overlay.set_hotkey(val) if val else None
+    
+    hotkey_row.layout_.addWidget(hotkey_lbl)
+    hotkey_row.layout_.addWidget(hotkey_input)
+    hotkey_row.layout_.addStretch()
+    
+    main_group.layout_.addWidget(hotkey_row)
     
     main_group.layout_.addStretch()
     

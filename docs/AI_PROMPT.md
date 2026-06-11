@@ -227,6 +227,25 @@ config_group.layout_.addWidget(bio_input)
 # Get value later: val = username_input.get()
 ```
 
+#### `OHotkeyInput`
+
+- **Supports**: An interactive line edit designed strictly for capturing and saving global keyboard shortcuts (e.g. `ctrl+shift+r`) in real-time, preventing standard text typing.
+- **Adjustable Props**:
+
+| Prop | Type | Default | Purpose |
+| :--- | :--- | :--- | :--- |
+| `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding. |
+
+- **Implementation**:
+
+```python
+hotkey_input = OHotkeyInput(config_group, width=150)
+hotkey_input.set("ctrl+shift+a")
+# Captures the new hotkey string and updates immediately
+hotkey_input._command = lambda val: print(f"New hotkey: {val}") if val else None
+config_group.layout_.addWidget(hotkey_input)
+```
+
 #### `OSpinBox` & `OSlider`
 
 - **Supports**: Numeric inputs with increment arrows and horizontal sliding scales.
@@ -382,6 +401,29 @@ waveform = OAudioWaveform(config_group, min_height=100, bar_width=4)
 waveform.load_audio_file("/path/to/audio.wav")
 waveform.seek_requested.connect(lambda ratio: print(f"Seek to {ratio:.2f}"))
 config_group.layout_.addWidget(waveform)
+```
+
+#### `OAudioRecorderOverlay`
+
+- **Supports**: A floating, frameless pill-shaped recording overlay with a real-time waveform. It can be triggered globally via a keyboard shortcut and supports both traditional file-saving and real-time chunk streaming.
+- **Adjustable Props**:
+
+| Prop | Type | Default | Purpose |
+| :--- | :--- | :--- | :--- |
+| `auto_start` | `bool` | `True` | Auto-start recording when the overlay appears. |
+| `chunk_ms` | `int` | `0` | Configure emitted audio chunks duration in ms (for real-time). `0` = OS default. |
+
+- **Implementation**:
+
+```python
+recorder = OAudioRecorderOverlay(win, chunk_ms=500)
+recorder.set_hotkey("ctrl+shift+r")
+
+# Scenario A: Traditional post-processing (Saved .wav file)
+recorder.recording_finished.connect(lambda path: print(f"Saved at {path}"))
+
+# Scenario B: Real-time processing (Live streaming NumPy arrays)
+recorder.audio_chunk_recorded.connect(lambda chunk: print(f"Got chunk of shape {chunk.shape}"))
 ```
 
 #### `OImageViewer`

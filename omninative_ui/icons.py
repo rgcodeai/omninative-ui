@@ -391,3 +391,46 @@ def _get_cached_file_icon(size: int = 24, color: Optional[str] = None) -> QPixma
         painter.end()
         _icon_cache[key] = pixmap
     return _icon_cache[key]
+
+def _get_cached_waveform_icon(size: int = 20, color: Optional[str] = None) -> QPixmap:
+    if color is None:
+        color = OMNINATIVE["dark"]
+    key = ("waveform", size, color)
+    if key not in _icon_cache:
+        pixmap = QPixmap(size, size)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        pen = QPen(QColor(color))
+        pen.setWidthF(max(1.5, size * 0.1))
+        pen.setCapStyle(Qt.RoundCap)
+        painter.setPen(pen)
+        
+        # 5 vertical bars
+        # small, tall, medium, tall, small
+        center = size / 2.0
+        gap = size * 0.16
+        
+        # heights
+        h_small = size * 0.25
+        h_med = size * 0.5
+        h_tall = size * 0.75
+        
+        # x positions
+        x3 = center
+        x2 = center - gap
+        x1 = center - gap * 2
+        x4 = center + gap
+        x5 = center + gap * 2
+        
+        # draw bars
+        painter.drawLine(QPointF(x1, center - h_small/2), QPointF(x1, center + h_small/2))
+        painter.drawLine(QPointF(x2, center - h_tall/2), QPointF(x2, center + h_tall/2))
+        painter.drawLine(QPointF(x3, center - h_med/2), QPointF(x3, center + h_med/2))
+        painter.drawLine(QPointF(x4, center - h_tall/2), QPointF(x4, center + h_tall/2))
+        painter.drawLine(QPointF(x5, center - h_small/2), QPointF(x5, center + h_small/2))
+        
+        painter.end()
+        _icon_cache[key] = pixmap
+    return _icon_cache[key]

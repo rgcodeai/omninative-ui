@@ -57,6 +57,7 @@ from .inputs import (
     OSlider,
     _WheelIgnoredSlider,
     OProgressBar,
+    OHotkeyInput,
 )
 
 from .containers import (
@@ -83,6 +84,11 @@ from .chat import (
     OChatInput,
     OActionMenuItem,
     OActionMenu,
+)
+
+from .overlays import (
+    OHotkeyOverlay,
+    OAudioRecorderOverlay,
 )
 
 # Re-export QTreeWidgetItem for convenience (used in demo)

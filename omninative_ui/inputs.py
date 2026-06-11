@@ -68,6 +68,108 @@ class OLineEdit(QLineEdit):
     def pack(self, **kwargs: Any) -> None: pass
 
 # ---------------------------------------------------------------------------
+# OHotkeyInput
+# ---------------------------------------------------------------------------
+class OHotkeyInput(OLineEdit):
+    """
+    A special line edit that captures keystrokes and formats them as hotkeys
+    (e.g., 'ctrl+shift+r') instead of allowing normal typing. Shows live feedback.
+    """
+    def __init__(self, master: Optional[QWidget] = None, **kwargs: Any) -> None:
+        super().__init__(master, **kwargs)
+        self.setReadOnly(True)
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setPlaceholderText("Click here and press a shortcut...")
+        self._recording = False
+        
+    def _on_text_changed(self, text: str) -> None:
+        # Override OLineEdit's behavior: do not fire command automatically
+        # when text changes, because we manually fire it on finalized hotkeys.
+        pass
+        
+    def focusInEvent(self, event: Any) -> None:
+        self._recording = True
+        super().focusInEvent(event)
+        
+    def focusOutEvent(self, event: Any) -> None:
+        self._recording = False
+        if self.text().endswith("..."):
+            self.set("")
+        super().focusOutEvent(event)
+        
+    def keyPressEvent(self, event: Any) -> None:
+        key = event.key()
+        modifiers = event.modifiers()
+        
+        if key == Qt.Key_unknown:
+            return
+            
+        # Allow backspace to clear the hotkey
+        if key in (Qt.Key_Backspace, Qt.Key_Delete):
+            self.set("")
+            if self._command:
+                self._command("")
+            self._recording = True
+            event.accept()
+            return
+            
+        self._recording = True
+            
+        parts = []
+        if modifiers & Qt.ControlModifier or key == Qt.Key_Control:
+            parts.append("ctrl")
+        if modifiers & Qt.ShiftModifier or key == Qt.Key_Shift:
+            parts.append("shift")
+        if modifiers & Qt.AltModifier or key == Qt.Key_Alt:
+            parts.append("alt")
+            
+        is_modifier = key in (Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt, Qt.Key_Meta)
+        
+        if is_modifier:
+            if parts:
+                self.setText("+".join(parts) + "+...")
+        else:
+            from PySide6.QtGui import QKeySequence
+            key_name = QKeySequence(key).toString().lower()
+            if key_name:
+                parts.append(key_name)
+                hotkey_str = "+".join(parts)
+                self.set(hotkey_str)
+                if self._command:
+                    self._command(hotkey_str)
+                self._recording = False
+                
+        event.accept()
+
+    def keyReleaseEvent(self, event: Any) -> None:
+        if not self._recording:
+            super().keyReleaseEvent(event)
+            return
+            
+        key = event.key()
+        modifiers = event.modifiers()
+        
+        parts = []
+        ctrl = bool(modifiers & Qt.ControlModifier)
+        shift = bool(modifiers & Qt.ShiftModifier)
+        alt = bool(modifiers & Qt.AltModifier)
+        
+        if key == Qt.Key_Control: ctrl = False
+        if key == Qt.Key_Shift: shift = False
+        if key == Qt.Key_Alt: alt = False
+        
+        if ctrl: parts.append("ctrl")
+        if shift: parts.append("shift")
+        if alt: parts.append("alt")
+        
+        if parts:
+            self.setText("+".join(parts) + "+...")
+        else:
+            self.setText("")
+            
+        event.accept()
+
+# ---------------------------------------------------------------------------
 # OTextBox
 # ---------------------------------------------------------------------------
 class OTextBox(QTextEdit):

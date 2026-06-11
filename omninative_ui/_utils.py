@@ -186,6 +186,9 @@ def get_global_stylesheet() -> str:
             background-color: transparent;
             border: 1px solid {OMNINATIVE["gray"]};
         }}
+        QLineEdit[readOnly="true"]:focus, QTextEdit[readOnly="true"]:focus {{
+            border: 1px solid {OMNINATIVE["primary"]};
+        }}
         QSpinBox {{
             background-color: {OMNINATIVE["dark"]};
             color: {OMNINATIVE["bright"]};

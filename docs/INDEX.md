@@ -12,6 +12,7 @@ This is the main context router of the project.
   - [UI Containers](core/ui-containers.md) - Scroll, Tabs, Trees, Virtual tables.
   - [UI Media](core/ui-media.md) - Audio and Galleries.
   - [UI Chat](core/ui-chat.md) - Conversational interfaces and assistants.
+  - [UI Overlays](core/ui-overlays.md) - Floating windows, global hotkeys, and popups.
 
 ### Features
 (No features defined yet)

@@ -46,6 +46,27 @@ entry = OLineEdit(group, width=150, height=30, password=True)
 
 ---
 
+### `OHotkeyInput`
+
+Path: `omninative_ui/inputs.py`
+Type: Component (OLineEdit)
+Description: A special line edit that captures keystrokes and formats them as hotkeys (e.g., 'ctrl+shift+r') instead of allowing normal typing. Shows live feedback.
+
+#### Initialization (Props)
+
+**General:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `master` | `Optional[QWidget]` | | Parent container. |
+
+#### Usage Examples
+
+```python
+hotkey_input = OHotkeyInput(group)
+```
+
+---
+
 ### `OTextBox`
 
 Path: `omninative_ui/inputs.py`

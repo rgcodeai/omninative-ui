@@ -87,8 +87,11 @@ class OHotkeyInput(OLineEdit):
         # when text changes, because we manually fire it on finalized hotkeys.
         pass
         
-    def focusInEvent(self, event: Any) -> None:
+    def mousePressEvent(self, event: Any) -> None:
         self._recording = True
+        super().mousePressEvent(event)
+        
+    def focusInEvent(self, event: Any) -> None:
         super().focusInEvent(event)
         
     def focusOutEvent(self, event: Any) -> None:

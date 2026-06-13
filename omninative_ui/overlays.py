@@ -3,20 +3,16 @@ import os
 import time
 import threading
 from typing import Optional, Any, Callable
-
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen, QBrush, QIcon, QPixmap
 from PySide6.QtCore import Qt, Signal, QTimer, QRect, QPoint, QSize
-
 from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER
-
 # Optional dependencies for audio and hotkeys
 try:
     import keyboard
     HAS_KEYBOARD = True
 except ImportError:
     HAS_KEYBOARD = False
-
 try:
     import sounddevice as sd
     import soundfile as sf
@@ -24,14 +20,11 @@ try:
     HAS_AUDIO = True
 except ImportError:
     HAS_AUDIO = False
-
-
 class OHotkeyOverlay(QWidget):
     """
     Base class for a floating, frameless overlay that can be toggled by a global hotkey.
     """
     _hotkey_signal = Signal()
-
     def __init__(self, master: Optional[QWidget] = None) -> None:
         super().__init__(master)
         
@@ -77,7 +70,6 @@ class OHotkeyOverlay(QWidget):
             # globalPosition() returns a QPointF, so we convert it to QPoint
             self._drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
             event.accept()
-
     def mouseMoveEvent(self, event: Any) -> None:
         """Handles window dragging."""
         if event.buttons() & Qt.LeftButton:
@@ -112,83 +104,118 @@ class OHotkeyOverlay(QWidget):
     def on_hide(self) -> None:
         """Override to implement behavior when hidden."""
         pass
-
-
+import math
+import math
+import math
 class ORealtimeWaveform(QWidget):
-    """A real-time audio visualizer for recording."""
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    """A controlled aesthetic audio visualizer for recording."""
+    def __init__(self, parent=None) -> None:
+        from PySide6.QtWidgets import QWidget
         super().__init__(parent)
-        self.setMinimumWidth(100)
-        self.setFixedHeight(30)
-        self.peaks = []
-        self._max_bars = 40
+        self.setMinimumWidth(90)
+        self.setFixedHeight(41)
+        self._is_talking = False
+        self._intensity = 0.0
+        self._time = 0.0
         
-    def add_peak(self, volume: float) -> None:
-        self.peaks.append(volume)
-        if len(self.peaks) > self._max_bars:
-            self.peaks = self.peaks[-self._max_bars:]
+        # Shorter pattern to fit 125px width. Around 17 bars.
+        self._pattern = [
+            0.15, 0.2, 0.4, 0.8, 0.4, 0.2, 0.3, 1.0, 0.5, 
+            1.0, 0.3, 0.2, 0.4, 0.8, 0.4, 0.2, 0.15
+        ]
+        self._current_scales = [0.15 for _ in self._pattern]
+        
+    def set_intensity(self, intensity: float) -> None:
+        """Update whether dialogue is detected based on volume threshold."""
+        self._is_talking = intensity > 0.05
+        self._intensity = intensity
         self.update()
         
-    def paintEvent(self, event: Any) -> None:
+    def paintEvent(self, event) -> None:
+        from PySide6.QtGui import QPainter, QColor, QBrush, QPen
+        from PySide6.QtCore import Qt, QRectF
+        from .tokens import OMNINATIVE
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
         w = self.width()
         h = self.height()
         
-        bar_w = 3
-        bar_spacing = 2
+        bar_w = 2.0
+        bar_spacing = 3.0
         
-        played_color = QColor(OMNINATIVE["primary"])
+        color = QColor(OMNINATIVE["dark"])
         
-        start_x = w - (len(self.peaks) * (bar_w + bar_spacing))
+        total_bars_width = len(self._pattern) * (bar_w + bar_spacing) - bar_spacing
+        start_x = (w - total_bars_width) / 2.0
         
-        for i, peak in enumerate(self.peaks):
-            bar_x = start_x + i * (bar_w + bar_spacing)
-            bar_h = max(2, int(h * peak))
-            y_top = (h - bar_h) // 2
+        if self._is_talking:
+            # Much faster and more fluid movement
+            self._time += 0.8
+            # Hyper-reactive aggression based on sound
+            aggression = 0.3 + (self._intensity * 2.5)
             
-            painter.setBrush(QBrush(played_color))
+            target_scales = []
+            for i, base_h in enumerate(self._pattern):
+                # Faster complex wave for rapid fluid vibration
+                wave1 = math.sin(self._time * 1.8 + i * 0.4) 
+                wave2 = math.cos(self._time * 1.2 - i * 0.2)
+                combined_wave = (wave1 * 0.6 + wave2 * 0.4) * aggression
+                scale = max(0.15, min(1.0, base_h + combined_wave))
+                target_scales.append(scale)
+        else:
+            # Shrink to minimum dots when not talking
+            target_scales = [0.15 for _ in self._pattern]
+            
+        for i in range(len(self._pattern)):
+            # Extremely fast but mathematically smooth interpolation
+            self._current_scales[i] += (target_scales[i] - self._current_scales[i]) * 0.6
+            
+            bar_x = start_x + i * (bar_w + bar_spacing)
+            # Use 45% of height for max amplitude to look more elegant and less aggressive
+            max_bar_h = h * 0.45
+            bar_h = max(2.0, max_bar_h * self._current_scales[i])
+            
+            # Perfect mathematical center using floats
+            y_top = (h - bar_h) / 2.0
+            
+            painter.setBrush(QBrush(color))
             painter.setPen(Qt.NoPen)
-            painter.drawRoundedRect(int(bar_x), int(y_top), bar_w, int(bar_h), 1, 1)
-
-
+            painter.drawRoundedRect(QRectF(bar_x, y_top, bar_w, bar_h), 1, 1)
 class OAudioRecorderOverlay(OHotkeyOverlay):
     """
     A pill-shaped overlay for recording audio.
-    Shows a realtime waveform and a stop button.
+    Shows an animated waveform and transcription status.
     """
     recording_finished = Signal(str)  # Emits the path to the saved wav file
     audio_chunk_recorded = Signal(object)  # Emits numpy ndarray chunks in real-time
     
-    def __init__(self, master: Optional[QWidget] = None, auto_start: bool = True, chunk_ms: int = 0) -> None:
+    def __init__(self, master=None, auto_start: bool = True, chunk_ms: int = 0, transcribing_text: str = "Transcribing...") -> None:
+        from PySide6.QtWidgets import QHBoxLayout, QLabel
+        from PySide6.QtCore import Qt, QTimer
+        from .tokens import OMNINATIVE, _FONT_FAMILY
         super().__init__(master)
         self.auto_start = auto_start
         self.chunk_ms = chunk_ms
         
-        self.setFixedSize(220, 50)
+        self.setFixedSize(125, 41)
         
         # Main layout inside the pill
         self.layout_ = QHBoxLayout(self)
-        self.layout_.setContentsMargins(15, 5, 10, 5)
-        self.layout_.setSpacing(10)
+        self.layout_.setContentsMargins(0, 0, 0, 0)
+        self.layout_.setSpacing(0)
         
         # Realtime Waveform
         self.waveform = ORealtimeWaveform(self)
-        self.layout_.addWidget(self.waveform, 1)
+        self.layout_.addWidget(self.waveform, 1, Qt.AlignCenter)
         
-        # Stop Button (White circle with dark bars)
-        self.stop_btn = QLabel()
-        self.stop_btn.setFixedSize(30, 30)
-        self.stop_btn.setCursor(Qt.PointingHandCursor)
-        self.stop_btn.mousePressEvent = self._on_stop_clicked
-        self._update_stop_btn_ui(is_hover=False)
-        
-        # Hover events for stop button
-        self.stop_btn.enterEvent = lambda e: self._update_stop_btn_ui(is_hover=True)
-        self.stop_btn.leaveEvent = lambda e: self._update_stop_btn_ui(is_hover=False)
-        
-        self.layout_.addWidget(self.stop_btn, 0)
+        # Transcribing Label
+        self.transcribing_label = QLabel(transcribing_text)
+        # Adjust font size to fit 125px width perfectly
+        self.transcribing_label.setStyleSheet(f"color: {OMNINATIVE['dark']}; font-family: {_FONT_FAMILY}; font-size: 13px; font-weight: bold;")
+        self.transcribing_label.setAlignment(Qt.AlignCenter)
+        self.transcribing_label.hide()
+        self.layout_.addWidget(self.transcribing_label, 1, Qt.AlignCenter)
         
         # Audio Recording State
         self._stream = None
@@ -202,42 +229,45 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
         self._ui_timer.setInterval(33)
         self._ui_timer.timeout.connect(self._update_ui)
         self._current_volume = 0.0
-
-    def _update_stop_btn_ui(self, is_hover: bool) -> None:
-        bg = OMNINATIVE["bright"] if not is_hover else OMNINATIVE["gray"]
-        fg = OMNINATIVE["background"]
-        self.stop_btn.setStyleSheet(f"""
-            background-color: {bg};
-            border-radius: 15px;
-        """)
+    def toggle(self) -> None:
+        if self._is_visible:
+            if self._is_recording:
+                self.set_transcribing_state()
+            else:
+                self.hide_overlay()
+        else:
+            self.reset_ui()
+            self.show_overlay()
+            
+    def set_transcribing_state(self, text: str = None) -> None:
+        if text:
+            self.transcribing_label.setText(text)
+        self._stop_recording()
+        self.waveform.hide()
+        self.transcribing_label.show()
         
-        from .icons import _get_cached_waveform_icon
-        pix = _get_cached_waveform_icon(size=20, color=fg)
-        
-        # Center the 20x20 icon in a 30x30 pixmap
-        container = QPixmap(30, 30)
-        container.fill(Qt.transparent)
-        painter = QPainter(container)
-        painter.drawPixmap(5, 5, pix)
-        painter.end()
-        
-        self.stop_btn.setPixmap(container)
-
-    def paintEvent(self, event: Any) -> None:
+    def reset_ui(self) -> None:
+        self.transcribing_label.hide()
+        self.waveform.show()
+    def paintEvent(self, event) -> None:
         """Draw the pill-shaped background."""
+        from PySide6.QtGui import QPainter, QPainterPath, QColor, QBrush
+        from PySide6.QtCore import Qt, QRect
+        from .tokens import OMNINATIVE
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
         rect = self.rect()
         path = QPainterPath()
-        path.addRoundedRect(QRect(0, 0, rect.width(), rect.height()), 25, 25)
+        radius = rect.height() // 2
+        path.addRoundedRect(QRect(0, 0, rect.width(), rect.height()), radius, radius)
         
-        # Semi-transparent dark background
-        bg_color = QColor(OMNINATIVE["background"])
-        bg_color.setAlpha(240)
+        # Slightly translucent bright background (Cross-OS compatible)
+        bg_color = QColor(OMNINATIVE["bright"])
+        bg_color.setAlpha(225)
         
         painter.setBrush(QBrush(bg_color))
-        painter.setPen(QPen(QColor(OMNINATIVE["dark"]), 1))
+        painter.setPen(Qt.NoPen)
         painter.drawPath(path)
         
     def position_on_screen(self) -> None:
@@ -266,7 +296,6 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
         y = geom.bottom() - 100
         
         self.move(x, y)
-
     def on_show(self) -> None:
         """Starts recording when the overlay appears."""
         self.position_on_screen()
@@ -278,17 +307,8 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
         if self._is_recording:
             self._stop_recording()
             
-    def _on_stop_clicked(self, event: Any) -> None:
-        if event.button() == Qt.LeftButton:
-            if self._is_recording:
-                if self.auto_start:
-                    self.hide_overlay()
-                else:
-                    self._stop_recording()
-            else:
-                self._start_recording()
-            
-    def _audio_callback(self, indata: Any, frames: int, time_info: Any, status: Any) -> None:
+    def _audio_callback(self, indata, frames: int, time_info, status) -> None:
+        import numpy as np
         if status:
             print(f"Audio status: {status}")
         if self._is_recording:
@@ -302,20 +322,20 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
             vol = np.linalg.norm(chunk) / np.sqrt(len(chunk))
             
             # Exaggerate the amplitude (multiplier from 10 to 40)
-            # We also apply a small base to make it look alive even with low noise
             exaggerated_vol = (vol * 40.0)
             self._current_volume = min(1.0, exaggerated_vol)
-
     def _start_recording(self) -> None:
         if not HAS_AUDIO:
             print("Audio libraries not found. Cannot record.")
             return
             
         import tempfile
+        import time
+        import sounddevice as sd
         self._temp_filepath = os.path.join(tempfile.gettempdir(), f"omninative_record_{int(time.time())}.wav")
         self._audio_data = []
         self._is_recording = True
-        self.waveform.peaks = []
+        self.waveform._is_talking = False
         
         try:
             blocksize = int((self.chunk_ms / 1000.0) * self._sample_rate) if self.chunk_ms > 0 else 0
@@ -330,7 +350,6 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
         except Exception as e:
             print(f"Failed to start audio stream: {e}")
             self._is_recording = False
-
     def _stop_recording(self) -> None:
         self._is_recording = False
         self._ui_timer.stop()
@@ -341,16 +360,20 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
             self._stream = None
             
         if self._audio_data and HAS_AUDIO:
+            import numpy as np
+            import soundfile as sf
             try:
                 audio_np = np.concatenate(self._audio_data, axis=0)
                 sf.write(self._temp_filepath, audio_np, self._sample_rate)
                 self.recording_finished.emit(self._temp_filepath)
             except Exception as e:
                 print(f"Failed to save audio: {e}")
-
     def _update_ui(self) -> None:
         """Called periodically by QTimer to update the waveform."""
         if self._is_recording:
-            self.waveform.add_peak(self._current_volume)
+            self.waveform.set_intensity(self._current_volume)
             # Add some decay to the volume so it doesn't freeze high
+            # Faster decay (0.5 instead of 0.8) makes it react quicker when sound stops
             self._current_volume *= 0.5
+        else:
+            self.waveform.set_intensity(0.0)

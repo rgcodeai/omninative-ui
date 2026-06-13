@@ -30,13 +30,16 @@ Path: `omninative_ui/overlays.py`
 
 Type: Component
 
-Description: A pill-shaped frameless overlay for recording audio. It features a realtime dynamic waveform and a stop button. Audio is recorded using `sounddevice` and saved using `soundfile`. Supports traditional file saving and real-time chunk streaming.
+Description: A pill-shaped frameless overlay for recording audio. It features a realtime dynamic waveform and a status message while transcribing. Audio is recorded using `sounddevice` and saved using `soundfile`. Supports traditional file saving and real-time chunk streaming.
 
 Key Exports:
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `__init__(chunk_ms: int)` | `Constructor` | `chunk_ms` configures the size of emitted audio chunks in milliseconds. Default `0` means low-latency blocks provided by the OS. |
+| `__init__(chunk_ms: int, transcribing_text: str)` | `Constructor` | `chunk_ms` configures the size of emitted audio chunks in ms. `transcribing_text` sets the default text (default `"Transcribing..."`). |
+| `toggle()` | `Method` | Cycles the overlay states: Show/Record -> Transcribing -> Reset/Hide. |
+| `set_transcribing_state(text: str = None)` | `Method` | Stops recording, hides waveform, and shows the transcription label. Optionally updates the text. |
+| `reset_ui()` | `Method` | Hides the transcription label and shows the waveform again. |
 | `recording_finished` | `Signal(str)` | Emits the absolute file path to the saved `.wav` file when recording stops. |
 | `audio_chunk_recorded` | `Signal(object)` | Emits `numpy.ndarray` chunks of raw audio data in real-time as they are recorded. |
-| `position_on_screen()` | `Method` | Positions the overlay dynamically based estrictamente en la posición del mouse, ignorando la ventana parent por completo. Incluye soporte nativo DPI scaling multiscreen para Windows. |
+| `position_on_screen()` | `Method` | Positions the overlay dynamically based on the mouse position. Incluye soporte nativo DPI scaling multiscreen para Windows. |
 | `set_hotkey(hotkey_str: str)` | `Method` | Inherited. Sets the global hotkey to show/hide the recorder. |

@@ -189,6 +189,13 @@ def get_global_stylesheet() -> str:
         QLineEdit[readOnly="true"]:focus, QTextEdit[readOnly="true"]:focus {{
             border: 1px solid {OMNINATIVE["primary"]};
         }}
+        #OHotkeyInput {{
+            background-color: {OMNINATIVE["dark"]};
+            color: {OMNINATIVE["accent"]};
+        }}
+        #OHotkeyInput[recording="true"] {{
+            color: {OMNINATIVE["bright"]};
+        }}
         QSpinBox {{
             background-color: {OMNINATIVE["dark"]};
             color: {OMNINATIVE["bright"]};

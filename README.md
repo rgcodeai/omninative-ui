@@ -35,7 +35,7 @@ pip install omninative-ui
 If you want to contribute or modify the library locally:
 
 ```bash
-git clone https://github.com/your-username/omninative-ui.git
+git clone https://github.com/rgcodeai/omninative-ui.git
 cd omninative-ui
 pip install -e .
 ```

@@ -24,6 +24,21 @@ Key Exports:
 
 ---
 
+### `OSpinner`
+
+Path: `omninative_ui/overlays.py`
+
+Type: Component
+
+Description: A minimal spinning loading icon.
+
+Key Exports:
+| Name | Type | Description |
+| :--- | :--- | :--- |
+| `__init__(size: int, color: str)` | `Constructor` | Creates the spinner. |
+
+---
+
 ### `OAudioRecorderOverlay`
 
 Path: `omninative_ui/overlays.py`
@@ -35,7 +50,7 @@ Description: A pill-shaped frameless overlay for recording audio. It features a 
 Key Exports:
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `__init__(chunk_ms: int, transcribing_text: str)` | `Constructor` | `chunk_ms` configures the size of emitted audio chunks in ms. `transcribing_text` sets the default text (default `"Transcribing..."`). |
+| `__init__(chunk_ms: int, transcribing_text: str, enable_processing_state: bool)` | `Constructor` | `chunk_ms` sets audio chunk size. `transcribing_text` sets the text. `enable_processing_state` defaults to `False`; if `True`, toggling off enters a 'Working' state instead of closing immediately. |
 | `toggle()` | `Method` | Cycles the overlay states: Show/Record -> Transcribing -> Reset/Hide. |
 | `set_transcribing_state(text: str = None)` | `Method` | Stops recording, hides waveform, and shows the transcription label. Optionally updates the text. |
 | `reset_ui()` | `Method` | Hides the transcription label and shows the waveform again. |

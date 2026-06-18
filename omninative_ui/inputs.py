@@ -77,10 +77,24 @@ class OHotkeyInput(OLineEdit):
     """
     def __init__(self, master: Optional[QWidget] = None, **kwargs: Any) -> None:
         super().__init__(master, **kwargs)
+        self.setObjectName("OHotkeyInput")
         self.setReadOnly(True)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setPlaceholderText("Click here and press a shortcut...")
-        self._recording = False
+        self._recording_state = False
+        self.setProperty("recording", False)
+        
+    @property
+    def _recording(self) -> bool:
+        return self._recording_state
+        
+    @_recording.setter
+    def _recording(self, value: bool) -> None:
+        if self._recording_state != value:
+            self._recording_state = value
+            self.setProperty("recording", value)
+            self.style().unpolish(self)
+            self.style().polish(self)
         
     def _on_text_changed(self, text: str) -> None:
         # Override OLineEdit's behavior: do not fire command automatically

@@ -459,7 +459,6 @@ class OComboBox(QFrame):
             align = Qt.AlignRight | Qt.AlignVCenter
 
         self._lbl_text.setAlignment(align)
-        self._lbl_text.setFixedHeight(height if isinstance(height, int) else 20)
         self._layout.addWidget(
             self._lbl_text,
             1,
@@ -522,7 +521,7 @@ class OComboBox(QFrame):
             color: {text_color};
             background: transparent;
             padding-top: 0px;
-            padding-bottom: 1px;
+            padding-bottom: 2px;
             margin: 0px;
             """
         )

@@ -426,6 +426,25 @@ recorder.recording_finished.connect(lambda path: print(f"Saved at {path}"))
 recorder.audio_chunk_recorded.connect(lambda chunk: print(f"Got chunk of shape {chunk.shape}"))
 ```
 
+#### `OInfoIcon` & `OTooltip`
+
+- **Supports**: An interactive information icon (`OInfoIcon`) that displays a custom floating tooltip window (`OTooltip`) natively above all OS elements on hover.
+- **Adjustable Props (`OInfoIcon`)**:
+
+| Prop | Type | Default | Purpose |
+| :--- | :--- | :--- | :--- |
+| `tooltip_text` | `str` | `""` | The text to display inside the tooltip. |
+| `size` | `int` | `20` | Size of the info icon. |
+| `position` | `str` | `"auto"` | Tooltip open direction (`"auto"`, `"left"`, or `"right"`). |
+| `tooltip_width` | `Union[int, str]`| `"auto"` | Tooltip width (`"auto"` to hug content, or fixed pixel size). |
+
+- **Implementation**:
+
+```python
+info_icon = OInfoIcon(config_group, tooltip_text="This is a custom tooltip.", size=16, position="auto", tooltip_width="auto")
+config_group.layout_.addWidget(info_icon)
+```
+
 #### `OImageViewer`
 
 - **Supports**: Image gallery with thumbnail strip, fullscreen view, load/download. Accepts both files and in-memory pixmaps (ideal for AI-generated images).

@@ -572,3 +572,88 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
             self._current_volume *= 0.5
         else:
             self.waveform.set_intensity(0.0)
+
+class OTooltip(QLabel):
+    """A customized floating tooltip."""
+    def __init__(self, text: str, width: Any = "auto"):
+        super().__init__(text)
+        from PySide6.QtCore import Qt
+        from .tokens import OMNINATIVE, _PAD, _CORNER, _FONT_FAMILY, _FONT_SIZE_SM
+        from ._utils import apply_layout_dimensions
+        
+        self.setWindowFlags(
+            Qt.ToolTip | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.X11BypassWindowManagerHint
+        )
+        self.setAttribute(Qt.WA_ShowWithoutActivating)
+        self.setWordWrap(True)
+        
+        apply_layout_dimensions(self, width, "auto")
+        
+        self.setStyleSheet(f"""
+            OTooltip {{
+                background-color: {OMNINATIVE['dark']};
+                color: {OMNINATIVE['accent']};
+                border: 1px solid {OMNINATIVE['bright']};
+                border-radius: {_CORNER}px;
+                padding: {_PAD}px;
+                font-family: {_FONT_FAMILY};
+                font-size: {_FONT_SIZE_SM}pt;
+            }}
+        """)
+
+class OInfoIcon(QLabel):
+    """An info icon that shows a custom tooltip on hover."""
+    def __init__(self, parent=None, tooltip_text: str = "", size: int = 20, position: str = "auto", tooltip_width: Any = "auto") -> None:
+        from PySide6.QtCore import Qt
+        from .icons import _get_cached_info_icon
+        super().__init__(parent)
+        self.tooltip_text = tooltip_text
+        self.tooltip_width = tooltip_width
+        self.position = position
+        self.icon_size = size
+        self.setPixmap(_get_cached_info_icon(size=self.icon_size))
+        self.setFixedSize(size, size)
+        self.setAlignment(Qt.AlignCenter)
+        self.custom_tooltip = None
+
+    def enterEvent(self, event) -> None:
+        from .icons import _get_cached_info_icon
+        from .tokens import OMNINATIVE
+        
+        self.setPixmap(_get_cached_info_icon(size=self.icon_size, color=OMNINATIVE["primary"]))
+        
+        if not self.custom_tooltip and self.tooltip_text:
+            self.custom_tooltip = OTooltip(self.tooltip_text, width=self.tooltip_width)
+            
+        if self.custom_tooltip:
+            self.custom_tooltip.adjustSize()
+            tooltip_w = self.custom_tooltip.width()
+            tooltip_h = self.custom_tooltip.height()
+            
+            icon_center = self.mapToGlobal(self.rect().center())
+            icon_right = self.mapToGlobal(self.rect().topRight())
+            icon_left = self.mapToGlobal(self.rect().topLeft())
+            
+            y = icon_left.y() # Aligns the top of the tooltip with the top of the icon
+            x = icon_right.x() + 5 # default right
+            
+            screen_geom = self.screen().availableGeometry()
+            if self.position == "left" or (self.position == "auto" and x + tooltip_w > screen_geom.right()):
+                x = icon_left.x() - 5 - tooltip_w
+            elif self.position == "right":
+                x = icon_right.x() + 5
+                
+            self.custom_tooltip.move(x, y)
+            self.custom_tooltip.show()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event) -> None:
+        from .icons import _get_cached_info_icon
+        
+        self.setPixmap(_get_cached_info_icon(size=self.icon_size))
+        
+        if self.custom_tooltip:
+            self.custom_tooltip.hide()
+            self.custom_tooltip.deleteLater()
+            self.custom_tooltip = None
+        super().leaveEvent(event)

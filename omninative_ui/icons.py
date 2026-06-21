@@ -1,6 +1,6 @@
 # omninative_ui/icons.py
 from typing import Dict, Tuple, Any, Optional, Union
-from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QPen, QColor, QBrush
+from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QPen, QColor, QBrush, QIcon
 from PySide6.QtCore import Qt, QRect, QRectF, QPointF
 
 # Importamos OMNINATIVE para los colores por defecto
@@ -329,8 +329,7 @@ def _get_cached_audio_icon(icon_type: str, size: int = 24, color: Union[str, 'QC
         _audio_icon_cache[key] = pixmap
     return _audio_icon_cache[key]
 
-def _get_cached_app_icon(size: int = 64) -> 'QIcon':
-    from PySide6.QtGui import QIcon
+def _get_cached_app_icon(size: int = 64) -> QIcon:
     key = ("app_icon", size)
     if key not in _icon_cache:
         pixmap = QPixmap(size, size)
@@ -430,6 +429,42 @@ def _get_cached_waveform_icon(size: int = 20, color: Optional[str] = None) -> QP
         painter.drawLine(QPointF(x3, center - h_med/2), QPointF(x3, center + h_med/2))
         painter.drawLine(QPointF(x4, center - h_tall/2), QPointF(x4, center + h_tall/2))
         painter.drawLine(QPointF(x5, center - h_small/2), QPointF(x5, center + h_small/2))
+        
+        painter.end()
+        _icon_cache[key] = pixmap
+    return _icon_cache[key]
+
+def _get_cached_info_icon(size: int = 20, color: Optional[str] = None) -> QPixmap:
+    if color is None:
+        color = OMNINATIVE["accent"]
+    key = ("info", size, color)
+    if key not in _icon_cache:
+        pixmap = QPixmap(size, size)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        pen_width = max(1.5, size * 0.08)
+        pen = QPen(QColor(color))
+        pen.setWidthF(pen_width)
+        pen.setCapStyle(Qt.RoundCap)
+        painter.setPen(pen)
+        
+        # Circle
+        margin = size * 0.1
+        circle_rect = QRectF(margin, margin, size - 2 * margin, size - 2 * margin)
+        painter.drawEllipse(circle_rect)
+        
+        cx = size / 2.0
+        dot_y = size * 0.32
+        line_start_y = size * 0.48
+        line_end_y = size * 0.70
+        
+        # Dot (draw a tiny line so RoundCap renders it as a perfect circle)
+        painter.drawLine(QPointF(cx, dot_y - 0.1), QPointF(cx, dot_y + 0.1))
+        
+        # Vertical line
+        painter.drawLine(QPointF(cx, line_start_y), QPointF(cx, line_end_y))
         
         painter.end()
         _icon_cache[key] = pixmap

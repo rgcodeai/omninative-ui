@@ -89,6 +89,8 @@ from .chat import (
 from .overlays import (
     OHotkeyOverlay,
     OAudioRecorderOverlay,
+    OTooltip,
+    OInfoIcon,
 )
 
 # Re-export QTreeWidgetItem for convenience (used in demo)

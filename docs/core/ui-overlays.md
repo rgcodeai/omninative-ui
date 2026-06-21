@@ -58,3 +58,33 @@ Key Exports:
 | `audio_chunk_recorded` | `Signal(object)` | Emits `numpy.ndarray` chunks of raw audio data in real-time as they are recorded. |
 | `position_on_screen()` | `Method` | Positions the overlay dynamically based on the mouse position. Incluye soporte nativo DPI scaling multiscreen para Windows. |
 | `set_hotkey(hotkey_str: str)` | `Method` | Inherited. Sets the global hotkey to show/hide the recorder. |
+
+---
+
+### `OTooltip`
+
+Path: `omninative_ui/overlays.py`
+
+Type: Component
+
+Description: A customized floating tooltip. Natively bypasses OS windows and applies `Qt.ToolTip` so it appears above all elements without un-minimizing the main app. Supports native width adjustments.
+
+Key Exports:
+| Name | Type | Description |
+| :--- | :--- | :--- |
+| `__init__(text: str, width: Union[int, str])` | `Constructor` | Creates the tooltip with the given text and optional fixed or proportional width. |
+
+---
+
+### `OInfoIcon`
+
+Path: `omninative_ui/overlays.py`
+
+Type: Component
+
+Description: An information icon that displays an `OTooltip` with custom text on hover.
+
+Key Exports:
+| Name | Type | Description |
+| :--- | :--- | :--- |
+| `__init__(parent, tooltip_text: str, size: int, position: str, tooltip_width: Union[int, str])` | `Constructor` | Creates the info icon. `position` can be `"auto"`, `"left"`, or `"right"`. `tooltip_width` adjusts the native width of the generated tooltip. |

@@ -10,7 +10,8 @@ from omninative_ui import (
     OComboBox, OCheckBox, OLineEdit, OTextBox, OSpinBox, OScrollArea, 
     OVirtualTable, OStatusBar, OSlider, OTabs, OSeparator, ORadioButton,
     OTreeWidget, QTreeWidgetItem, OOptionRow, OAudioPlayer, OProgressBar, OFileItem,
-    OImageViewer, OChatView, OChatInput, OActionMenu, OAudioRecorderOverlay, OHotkeyInput
+    OImageViewer, OChatView, OChatInput, OActionMenu, OAudioRecorderOverlay, OHotkeyInput,
+    OInfoIcon
 )
 
 def main():
@@ -417,6 +418,32 @@ def main():
     
     tree_action_menu.add_widget(menu_window)
     main_group.layout_.addWidget(tree_action_menu)
+    main_group.layout_.addWidget(OSeparator(main_group))
+    
+    # -----------------------------------------------------------------------
+    # OInfoIcon & OTooltip
+    # -----------------------------------------------------------------------
+    tree_tooltip = OTreeWidget(main_group, text="OInfoIcon & OTooltip", expanded=False)
+    tooltip_group = OGroup(tree_tooltip.content, orientation="h")
+    
+    lbl_right = OLabel(tooltip_group, text="Tooltip (Right):")
+    icon_right = OInfoIcon(tooltip_group, tooltip_text="This tooltip opens to the right and wraps around the content.", size=16, position="right", tooltip_width="auto")
+    
+    tooltip_group.layout_.addWidget(lbl_right)
+    tooltip_group.layout_.addWidget(icon_right)
+    
+    tooltip_group.layout_.addSpacing(30)
+    
+    lbl_left = OLabel(tooltip_group, text="Tooltip (Left):")
+    icon_left = OInfoIcon(tooltip_group, tooltip_text="This tooltip opens to the left and wraps around the content.", size=16, position="left", tooltip_width="auto")
+    
+    tooltip_group.layout_.addWidget(lbl_left)
+    tooltip_group.layout_.addWidget(icon_left)
+    
+    tooltip_group.layout_.addStretch()
+    
+    tree_tooltip.add_widget(tooltip_group)
+    main_group.layout_.addWidget(tree_tooltip)
     main_group.layout_.addWidget(OSeparator(main_group))
     
     # -----------------------------------------------------------------------

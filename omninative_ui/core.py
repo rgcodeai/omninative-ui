@@ -407,7 +407,7 @@ class OComboBox(QFrame):
         height: Union[int, str] = 22,
         anchor: str = "w",
         transparent: bool = False,
-        pad_left: int = 8,
+        pad_left: int = 4,
         pad_right: int = 3,
         spacing: int = 4,
         icon_size: int = 20,

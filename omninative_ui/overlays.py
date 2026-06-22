@@ -6,7 +6,8 @@ from typing import Optional, Any, Callable
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen, QBrush, QIcon, QPixmap
 from PySide6.QtCore import Qt, Signal, QTimer, QRect, QPoint, QSize
-from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER
+from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER, _PAD
+from ._utils import apply_layout_dimensions
 # Optional dependencies for audio and hotkeys
 try:
     import keyboard
@@ -573,24 +574,26 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
         else:
             self.waveform.set_intensity(0.0)
 
-class OTooltip(QLabel):
-    """A customized floating tooltip."""
+class OTooltip(QWidget):
     def __init__(self, text: str, width: Any = "auto"):
-        super().__init__(text)
+        super().__init__()
+        from PySide6.QtWidgets import QLabel, QVBoxLayout
         from PySide6.QtCore import Qt
-        from .tokens import OMNINATIVE, _PAD, _CORNER, _FONT_FAMILY, _FONT_SIZE_SM
-        from ._utils import apply_layout_dimensions
         
-        self.setWindowFlags(
-            Qt.ToolTip | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.X11BypassWindowManagerHint
-        )
+        self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.X11BypassWindowManagerHint)
         self.setAttribute(Qt.WA_ShowWithoutActivating)
-        self.setWordWrap(True)
+        self.setAttribute(Qt.WA_TranslucentBackground)
         
-        apply_layout_dimensions(self, width, "auto")
+        self.label = QLabel(text)
+        self.label.setWordWrap(True)
+        apply_layout_dimensions(self.label, width, "auto")
         
-        self.setStyleSheet(f"""
-            OTooltip {{
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.label)
+        
+        self.label.setStyleSheet(f"""
+            QLabel {{
                 background-color: {OMNINATIVE['dark']};
                 color: {OMNINATIVE['accent']};
                 border: 1px solid {OMNINATIVE['bright']};

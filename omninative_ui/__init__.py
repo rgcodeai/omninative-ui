@@ -14,6 +14,7 @@ from .tokens import (
     _FONT_SIZE_LG,
     _CORNER,
     _PAD,
+    set_global_theme,
 )
 
 from .icons import (
@@ -30,6 +31,7 @@ from ._utils import (
     get_global_stylesheet,
     _pixmap_to_data_url,
     apply_layout_dimensions,
+    o_theme_val,
 )
 
 from .core import (

@@ -19,7 +19,7 @@ from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER, _PAD
 from .icons import _get_cached_audio_icon, _get_cached_file_icon
 from .core import OButton, OElidedLabel
 from .inputs import _WheelIgnoredSlider
-from ._utils import apply_layout_dimensions
+from ._utils import apply_layout_dimensions, o_theme_val
 
 
 # ---------------------------------------------------------------------------
@@ -29,11 +29,30 @@ class OAudioButton(QPushButton):
     _PULSE_STEPS = 45  # Ticks per full cycle (~1.5s at 33ms)
     _PULSE_LEVELS = 20  # Quantization levels to limit icon cache
 
-    def __init__(self, master: Optional[QWidget], icon_type: str, size: int = 24, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget],
+        icon_type: str,
+        size: int = 24,
+        bg_color: Optional[str] = None,
+        primary_color: Optional[str] = None,
+        secondary_color: Optional[str] = None,
+        hover_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        theme: Optional[dict] = None,
+        **kwargs: Any
+    ) -> None:
         super().__init__(master)
         self.icon_type = icon_type
         self.size_val = size
         self.is_active = False
+
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        self._primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE["primary"])
+        self._secondary = o_theme_val(theme, "secondary_color", secondary_color, OMNINATIVE["accent"])
+        self._hover = o_theme_val(theme, "hover_color", hover_color, OMNINATIVE["primary"])
+        self._border = o_theme_val(theme, "border_color", border_color, self._secondary)
+        self._pressed_bg = o_theme_val(theme, "pressed_bg_color", kwargs.get("pressed_bg_color"), OMNINATIVE["gray"])
 
         self.setFixedSize(size, size)
         self.setCursor(Qt.PointingHandCursor)
@@ -88,25 +107,25 @@ class OAudioButton(QPushButton):
         if self.is_active:
             if self.icon_type == "mic":
                 t = self._pulse_factor()
-                color = self._lerp_color(OMNINATIVE["primary"], OMNINATIVE["bright"], t)
+                color = self._lerp_color(self._primary, OMNINATIVE["bright"], t)
             else:
-                color = OMNINATIVE["primary"]
+                color = self._primary
         elif self._hovered:
-            color = OMNINATIVE["primary"]
+            color = self._hover
         else:
-            color = OMNINATIVE["accent"]
+            color = self._secondary
 
         pix = _get_cached_audio_icon(self.icon_type, size=self.size_val, color=color)
         self.setIcon(QIcon(pix))
         self.setIconSize(QSize(self.size_val, self.size_val))
 
-        bg = OMNINATIVE["dark"]
-        border_color = OMNINATIVE["accent"]
+        bg = self._bg
+        border_color = self._border
         if self.is_active and self.icon_type == "mic":
             t = self._pulse_factor()
-            border_color = self._lerp_color(OMNINATIVE["primary"], OMNINATIVE["bright"], t)
+            border_color = self._lerp_color(self._primary, OMNINATIVE["bright"], t)
         elif self._hovered:
-            border_color = OMNINATIVE["primary"]
+            border_color = self._hover
 
         cr = self.size_val // 2
         self.setStyleSheet(f"""
@@ -118,7 +137,7 @@ class OAudioButton(QPushButton):
                 margin: 0px;
             }}
             QPushButton:pressed {{
-                background-color: {OMNINATIVE["gray"]};
+                background-color: {self._pressed_bg};
             }}
         """)
 
@@ -137,6 +156,11 @@ class OAudioWaveform(QWidget):
         bar_corner_radius: int = 1,
         playhead_width: int = 2,
         height_ratio: float = 0.8,
+        bg_color: Optional[str] = None,
+        primary_color: Optional[str] = None,
+        secondary_color: Optional[str] = None,
+        center_line_color: Optional[str] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -145,6 +169,11 @@ class OAudioWaveform(QWidget):
         self._bar_corner_radius = bar_corner_radius
         self._playhead_width = playhead_width
         self._height_ratio = height_ratio
+
+        self._bg_color = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        self._primary_color = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE["primary"])
+        self._secondary_color = o_theme_val(theme, "secondary_color", secondary_color, OMNINATIVE["accent"])
+        self._line_color = o_theme_val(theme, "center_line_color", center_line_color, OMNINATIVE["gray"])
 
         self.setMinimumHeight(min_height)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -228,11 +257,11 @@ class OAudioWaveform(QWidget):
         
         # Draw background container
         bg_rect = QRect(0, 0, w, h)
-        painter.fillRect(bg_rect, QColor(OMNINATIVE["dark"]))
+        painter.fillRect(bg_rect, QColor(self._bg_color))
         
         # Draw horizontal center line
         painter.setRenderHint(QPainter.Antialiasing, False)
-        painter.setPen(QPen(QColor(OMNINATIVE["gray"]), 1))
+        painter.setPen(QPen(QColor(self._line_color), 1))
         painter.drawLine(0, h // 2, w, h // 2)
         painter.setRenderHint(QPainter.Antialiasing, True)
         
@@ -269,8 +298,8 @@ class OAudioWaveform(QWidget):
             start_x = (w - actual_content_w) / 2.0
         
         # Colors
-        played_color = QColor(OMNINATIVE["primary"])
-        unplayed_color = QColor(OMNINATIVE["accent"])
+        played_color = QColor(self._primary_color)
+        unplayed_color = QColor(self._secondary_color)
         
         for i, peak in enumerate(display_peaks):
             bar_x = start_x + i * (bar_w + bar_spacing)
@@ -293,7 +322,7 @@ class OAudioWaveform(QWidget):
             
         # Draw playhead line
         playhead_x = int(self.playback_ratio * w)
-        painter.setPen(QPen(QColor(OMNINATIVE["primary"]), self._playhead_width))
+        painter.setPen(QPen(QColor(self._primary_color), self._playhead_width))
         painter.drawLine(playhead_x, 0, playhead_x, h)
         
         # Draw playhead top handle
@@ -302,13 +331,13 @@ class OAudioWaveform(QWidget):
         handle_path.lineTo(playhead_x + 5, 0)
         handle_path.lineTo(playhead_x, 6)
         handle_path.closeSubpath()
-        painter.setBrush(QBrush(QColor(OMNINATIVE["primary"])))
+        painter.setBrush(QBrush(QColor(self._primary_color)))
         painter.setPen(Qt.NoPen)
         painter.drawPath(handle_path)
         
         # Draw hover guide line if hovered
         if self.is_hovered and 0 <= self.hover_x <= w:
-            painter.setPen(QPen(QColor(OMNINATIVE["accent"]), 1, Qt.DashLine))
+            painter.setPen(QPen(QColor(self._secondary_color), 1, Qt.DashLine))
             painter.drawLine(self.hover_x, 0, self.hover_x, h)
             
         painter.end()
@@ -358,6 +387,14 @@ class OAudioPlayer(QWidget):
         show_record: bool = True,
         show_load: bool = True,
         show_volume: bool = True,
+        text_color: Optional[str] = None,
+        secondary_text_color: Optional[str] = None,
+        slider_bg_color: Optional[str] = None,
+        slider_fill_color: Optional[str] = None,
+        slider_handle_color: Optional[str] = None,
+        slider_handle_hover_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -410,17 +447,26 @@ class OAudioPlayer(QWidget):
         self.sim_timer.timeout.connect(self._on_sim_timeout)
         self.last_tick_time = 0.0
 
+        # Theming
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
+        self._sec_txt = o_theme_val(theme, "secondary_text_color", secondary_text_color, OMNINATIVE["accent"])
+        self._slider_bg = o_theme_val(theme, "slider_bg_color", slider_bg_color, OMNINATIVE["dark"])
+        self._slider_fill = o_theme_val(theme, "slider_fill_color", slider_fill_color, OMNINATIVE["primary"])
+        self._slider_handle = o_theme_val(theme, "slider_handle_color", slider_handle_color, OMNINATIVE["bright"])
+        self._slider_hover = o_theme_val(theme, "slider_handle_hover_color", slider_handle_hover_color, OMNINATIVE["primary"])
+        self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+
         # Top Bar
         self.top_bar = QWidget()
         self.top_layout = QHBoxLayout(self.top_bar)
         self.top_layout.setContentsMargins(0, 0, 0, 0)
         self.top_layout.setSpacing(5)
 
-        self.title_lbl = OElidedLabel("No Audio Loaded")
-        self.title_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM, QFont.Bold))
-        self.title_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']};")
+        self.title_lbl = OElidedLabel("No Audio Loaded", theme=theme)
+        self.title_lbl.setFont(QFont(_FONT_FAMILY, self._sz, QFont.Bold))
+        self.title_lbl.setStyleSheet(f"color: {self._txt};")
 
-        self.load_btn = OButton(self.top_bar, text="Load File", command=self._open_file_dialog)
+        self.load_btn = OButton(self.top_bar, text="Load File", command=self._open_file_dialog, theme=theme)
         if not show_load:
             self.load_btn.hide()
 
@@ -429,7 +475,7 @@ class OAudioPlayer(QWidget):
         self.layout_.addWidget(self.top_bar)
 
         # Middle Waveform
-        self.waveform = OAudioWaveform(self)
+        self.waveform = OAudioWaveform(self, theme=theme)
         self.waveform.seek_requested.connect(self.seek_to_ratio)
         self.layout_.addWidget(self.waveform)
 
@@ -439,20 +485,20 @@ class OAudioPlayer(QWidget):
         self.controls_layout.setContentsMargins(0, 0, 0, 0)
         self.controls_layout.setSpacing(5)
 
-        self.record_btn = OAudioButton(self.controls_bar, "mic", size=button_size)
+        self.record_btn = OAudioButton(self.controls_bar, "mic", size=button_size, theme=theme)
         self.record_btn.clicked.connect(self.toggle_record)
         if not show_record:
             self.record_btn.hide()
 
-        self.play_btn = OAudioButton(self.controls_bar, "play", size=button_size)
+        self.play_btn = OAudioButton(self.controls_bar, "play", size=button_size, theme=theme)
         self.play_btn.clicked.connect(self.toggle_play)
 
-        self.stop_btn = OAudioButton(self.controls_bar, "stop", size=button_size)
+        self.stop_btn = OAudioButton(self.controls_bar, "stop", size=button_size, theme=theme)
         self.stop_btn.clicked.connect(self.stop)
 
         self.time_lbl = QLabel("00:00 / 00:00")
-        self.time_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM))
-        self.time_lbl.setStyleSheet(f"color: {OMNINATIVE['accent']};")
+        self.time_lbl.setFont(QFont(_FONT_FAMILY, self._sz))
+        self.time_lbl.setStyleSheet(f"color: {self._sec_txt};")
 
         self.vol_icon = QLabel()
         self.vol_icon.setFixedSize(20, 20)
@@ -467,22 +513,22 @@ class OAudioPlayer(QWidget):
         self.vol_slider.setStyleSheet(f"""
             QSlider::groove:horizontal {{
                 height: 4px;
-                background: {OMNINATIVE['dark']};
+                background: {self._slider_bg};
                 border-radius: 2px;
             }}
             QSlider::sub-page:horizontal {{
-                background: {OMNINATIVE['primary']};
+                background: {self._slider_fill};
                 border-radius: 2px;
             }}
             QSlider::handle:horizontal {{
-                background: {OMNINATIVE['bright']};
+                background: {self._slider_handle};
                 width: 10px;
                 height: 10px;
                 margin: -3px 0;
                 border-radius: 5px;
             }}
             QSlider::handle:horizontal:hover {{
-                background: {OMNINATIVE['primary']};
+                background: {self._slider_hover};
             }}
         """)
         self.vol_slider.valueChanged.connect(self.set_volume)
@@ -596,7 +642,7 @@ class OAudioPlayer(QWidget):
         else:
             icon_type = "volume_high"
             
-        pix = _get_cached_audio_icon(icon_type, size=20, color=OMNINATIVE["accent"])
+        pix = _get_cached_audio_icon(icon_type, size=20, color=self._sec_txt)
         self.vol_icon.setPixmap(pix)
             
     def seek_to_ratio(self, ratio: float) -> None:
@@ -870,6 +916,15 @@ class OImageViewer(QWidget):
         show_load: bool = True,
         show_thumbnails: bool = True,
         placeholder_text: str = "",
+        bg_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        secondary_text_color: Optional[str] = None,
+        thumbnail_border_color: Optional[str] = None,
+        thumbnail_active_border_color: Optional[str] = None,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -877,6 +932,15 @@ class OImageViewer(QWidget):
         self._show_thumbnails = show_thumbnails
         self._show_download = show_download
         self._placeholder_text = placeholder_text or "Click 'Load' to add images"
+
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
+        self._sec_txt = o_theme_val(theme, "secondary_text_color", secondary_text_color, OMNINATIVE["accent"])
+        self._thumb_bc = o_theme_val(theme, "thumbnail_border_color", thumbnail_border_color, OMNINATIVE["gray"])
+        self._thumb_act_bc = o_theme_val(theme, "thumbnail_active_border_color", thumbnail_active_border_color, OMNINATIVE["bright"])
+        self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+        self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 
         apply_layout_dimensions(self, width, height)
 
@@ -893,12 +957,12 @@ class OImageViewer(QWidget):
         self.top_layout.setContentsMargins(0, 0, 0, 0)
         self.top_layout.setSpacing(8)
 
-        self.title_lbl = OElidedLabel("No Image")
-        self.title_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM, QFont.Bold))
-        self.title_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']};")
+        self.title_lbl = OElidedLabel("No Image", theme=theme)
+        self.title_lbl.setFont(QFont(_FONT_FAMILY, self._sz, QFont.Bold))
+        self.title_lbl.setStyleSheet(f"color: {self._txt};")
 
-        self.download_btn = OButton(self.top_bar, text="Download", command=self.download_current)
-        self.load_btn = OButton(self.top_bar, text="Load", command=self._open_file_dialog)
+        self.download_btn = OButton(self.top_bar, text="Download", command=self.download_current, theme=theme)
+        self.load_btn = OButton(self.top_bar, text="Load", command=self._open_file_dialog, theme=theme)
         if not show_load:
             self.load_btn.hide()
 
@@ -911,14 +975,14 @@ class OImageViewer(QWidget):
         self.image_container = QFrame()
         self.image_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.image_container.setMinimumHeight(100)
-        self.image_container.setStyleSheet(f"background-color: {OMNINATIVE['dark']}; border: 1px solid {OMNINATIVE['gray']}; border-radius: {_CORNER}px; margin-top: 7px; margin-bottom: 5px;")
+        self.image_container.setStyleSheet(f"background-color: {self._bg}; border: 1px solid {self._bc}; border-radius: {self._br}px; margin-top: 7px; margin-bottom: 5px;")
         self.image_layout = QVBoxLayout(self.image_container)
         self.image_layout.setContentsMargins(4, 4, 4, 4)
 
         self.image_lbl = QLabel("Click to open Fullscreen")
         self.image_lbl.setAlignment(Qt.AlignCenter)
         self.image_lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        self.image_lbl.setStyleSheet("color: " + OMNINATIVE['accent'] + "; background: transparent; border: none;")
+        self.image_lbl.setStyleSheet(f"color: {self._sec_txt}; background: transparent; border: none;")
         self.image_lbl.setMouseTracking(True)
         self.image_lbl.mousePressEvent = self._on_image_click
         self.image_lbl.mouseMoveEvent = self._on_image_mouse_move
@@ -928,7 +992,7 @@ class OImageViewer(QWidget):
 
         self.thumbnails_container = QFrame()
         self.thumbnails_container.setFixedHeight(thumbnail_strip_height)
-        self.thumbnails_container.setStyleSheet(f"background-color: {OMNINATIVE['dark']}; border: 1px solid {OMNINATIVE['gray']}; border-radius: {_CORNER}px;")
+        self.thumbnails_container.setStyleSheet(f"background-color: {self._bg}; border: 1px solid {self._bc}; border-radius: {self._br}px;")
         self.thumbnails_container_layout = QVBoxLayout(self.thumbnails_container)
         self.thumbnails_container_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -1057,9 +1121,9 @@ class OImageViewer(QWidget):
             thumb_lbl.setPixmap(rounded)
             
             if idx == self.current_index:
-                thumb_lbl.setStyleSheet(f"border: 1px solid {OMNINATIVE['bright']}; border-radius: 4px;")
+                thumb_lbl.setStyleSheet(f"border: 1px solid {self._thumb_act_bc}; border-radius: 4px;")
             else:
-                thumb_lbl.setStyleSheet(f"border: 1px solid {OMNINATIVE['gray']}; border-radius: 4px;")
+                thumb_lbl.setStyleSheet(f"border: 1px solid {self._thumb_bc}; border-radius: 4px;")
                 
             thumb_lbl.mousePressEvent = lambda e, i=idx: self.set_current_index(i)
             self.thumbnails_layout.addWidget(thumb_lbl)
@@ -1077,9 +1141,9 @@ class OImageViewer(QWidget):
             widget = self.thumbnails_layout.itemAt(i).widget()
             if widget:
                 if i == self.current_index:
-                    widget.setStyleSheet(f"border: 1px solid {OMNINATIVE['bright']}; border-radius: 4px;")
+                    widget.setStyleSheet(f"border: 1px solid {self._thumb_act_bc}; border-radius: 4px;")
                 else:
-                    widget.setStyleSheet(f"border: 1px solid {OMNINATIVE['gray']}; border-radius: 4px;")
+                    widget.setStyleSheet(f"border: 1px solid {self._thumb_bc}; border-radius: 4px;")
                     
         if self.current_index >= 0 and self.current_index < len(self.images):
             img_data = self.images[self.current_index]
@@ -1159,6 +1223,15 @@ class OFileItem(QFrame):
         button_spacing: int = 5,
         show_open: bool = True,
         show_save: bool = True,
+        bg_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        hover_border_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        secondary_text_color: Optional[str] = None,
+        icon_color: Optional[str] = None,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -1167,15 +1240,24 @@ class OFileItem(QFrame):
 
         apply_layout_dimensions(self, width, height)
 
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
+        self._hov_bc = o_theme_val(theme, "hover_border_color", hover_border_color, OMNINATIVE["primary"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
+        self._sec_txt = o_theme_val(theme, "secondary_text_color", secondary_text_color, OMNINATIVE["accent"])
+        self._icon_c = o_theme_val(theme, "icon_color", icon_color, OMNINATIVE["primary"])
+        self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+        self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+
         # Style as a card
         self.setStyleSheet(f"""
             OFileItem {{
-                background-color: {OMNINATIVE['dark']};
-                border: 1px solid {OMNINATIVE['gray']};
-                border-radius: {_CORNER}px;
+                background-color: {self._bg};
+                border: 1px solid {self._bc};
+                border-radius: {self._br}px;
             }}
             OFileItem:hover {{
-                border: 1px solid {OMNINATIVE['primary']};
+                border: 1px solid {self._hov_bc};
             }}
         """)
 
@@ -1188,7 +1270,7 @@ class OFileItem(QFrame):
         self.icon_lbl.setFixedSize(icon_size, icon_size)
         self.icon_lbl.setAlignment(Qt.AlignCenter)
         self.icon_lbl.setStyleSheet("background: transparent; border: none;")
-        pix = _get_cached_file_icon(size=icon_size, color=OMNINATIVE["primary"])
+        pix = _get_cached_file_icon(size=icon_size, color=self._icon_c)
         self.icon_lbl.setPixmap(pix)
 
         # Text details
@@ -1196,9 +1278,9 @@ class OFileItem(QFrame):
         self.text_layout.setContentsMargins(0, 0, 0, 0)
         self.text_layout.setSpacing(2)
 
-        self.name_lbl = OElidedLabel(self.filename)
-        self.name_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM, QFont.Bold))
-        self.name_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']}; background: transparent; border: none;")
+        self.name_lbl = OElidedLabel(self.filename, theme=theme)
+        self.name_lbl.setFont(QFont(_FONT_FAMILY, self._sz, QFont.Bold))
+        self.name_lbl.setStyleSheet(f"color: {self._txt}; background: transparent; border: none;")
         self.name_lbl._elide_text = lambda: QLabel.setText(
             self.name_lbl,
             self.name_lbl.fontMetrics().elidedText(
@@ -1209,20 +1291,20 @@ class OFileItem(QFrame):
         )
 
         self.size_lbl = QLabel(filesize_str)
-        self.size_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM - 2))
-        self.size_lbl.setStyleSheet(f"color: {OMNINATIVE['accent']}; background: transparent; border: none;")
+        self.size_lbl.setFont(QFont(_FONT_FAMILY, max(1, self._sz - 2)))
+        self.size_lbl.setStyleSheet(f"color: {self._sec_txt}; background: transparent; border: none;")
 
         self.text_layout.addWidget(self.name_lbl)
         self.text_layout.addWidget(self.size_lbl)
 
         # Action Buttons
-        self.open_btn = OButton(self, text="Open", variant="secondary")
+        self.open_btn = OButton(self, text="Open", variant="secondary", theme=theme)
         self.open_btn.setFixedSize(button_width, button_height)
         self.open_btn.clicked.connect(self._on_open)
         if not show_open:
             self.open_btn.hide()
 
-        self.save_btn = OButton(self, text="Save", variant="primary")
+        self.save_btn = OButton(self, text="Save", variant="primary", theme=theme)
         self.save_btn.setFixedSize(button_width, button_height)
         self.save_btn.clicked.connect(self._on_save)
         if not show_save:

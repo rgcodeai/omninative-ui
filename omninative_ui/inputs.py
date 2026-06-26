@@ -20,7 +20,7 @@ from .tokens import (
     _CORNER,
     _PAD,
 )
-from ._utils import apply_layout_dimensions
+from ._utils import apply_layout_dimensions, o_theme_val
 
 
 # ---------------------------------------------------------------------------
@@ -36,6 +36,15 @@ class OLineEdit(QLineEdit):
         command: Optional[Callable[[str], None]] = None,
         password: bool = False,
         read_only: bool = False,
+        bg_color: Optional[str] = None,
+        bg_focus_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        border_focus_color: Optional[str] = None,
+        border_width: int = 1,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -47,6 +56,39 @@ class OLineEdit(QLineEdit):
             self.setEchoMode(QLineEdit.Password)
         if read_only:
             self.setReadOnly(True)
+            
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        _bg_foc = o_theme_val(theme, "bg_focus_color", bg_focus_color, _bg)
+        _txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
+        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE["primary"])
+        _bw = o_theme_val(theme, "border_width", border_width, 1)
+        _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+        _sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+
+        self.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {_bg};
+                color: {_txt};
+                border: {_bw}px solid {_bc};
+                border-radius: {_br}px;
+                padding: 2px 4px;
+                font-family: "{_FONT_FAMILY}";
+                font-size: {_sz}pt;
+            }}
+            QLineEdit:focus {{
+                border: {_bw}px solid {_bc_foc};
+                background-color: {_bg_foc};
+            }}
+            QLineEdit[readOnly="true"] {{
+                color: {OMNINATIVE["accent"]};
+                background-color: transparent;
+                border: {_bw}px solid {OMNINATIVE["gray"]};
+            }}
+            QLineEdit[readOnly="true"]:focus {{
+                border: {_bw}px solid {OMNINATIVE["primary"]};
+            }}
+        """)
             
         self.textChanged.connect(self._on_text_changed)
         
@@ -75,14 +117,66 @@ class OHotkeyInput(OLineEdit):
     A special line edit that captures keystrokes and formats them as hotkeys
     (e.g., 'ctrl+shift+r') instead of allowing normal typing. Shows live feedback.
     """
-    def __init__(self, master: Optional[QWidget] = None, **kwargs: Any) -> None:
-        super().__init__(master, **kwargs)
+    def __init__(
+        self, 
+        master: Optional[QWidget] = None, 
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        text_recording_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        border_focus_color: Optional[str] = None,
+        border_width: int = 1,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
+        **kwargs: Any
+    ) -> None:
+        super().__init__(
+            master, 
+            bg_color=bg_color,
+            text_color=text_color,
+            border_color=border_color,
+            border_focus_color=border_focus_color,
+            border_width=border_width,
+            border_radius=border_radius,
+            font_size=font_size,
+            theme=theme,
+            **kwargs
+        )
         self.setObjectName("OHotkeyInput")
-        self.setReadOnly(True)
+        self.setContextMenuPolicy(Qt.NoContextMenu)
         self.setFocusPolicy(Qt.StrongFocus)
+        self.setCursor(Qt.PointingHandCursor)
         self.setPlaceholderText("Click here and press a shortcut...")
         self._recording_state = False
         self.setProperty("recording", False)
+        
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        _txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["accent"])
+        _txt_rec = o_theme_val(theme, "text_recording_color", text_recording_color, OMNINATIVE["bright"])
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
+        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE["primary"])
+        _bw = o_theme_val(theme, "border_width", border_width, 1)
+        _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+        _sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+
+        self.setStyleSheet(f"""
+            #OHotkeyInput {{
+                background-color: {_bg};
+                color: {_txt};
+                border: {_bw}px solid {_bc};
+                border-radius: {_br}px;
+                padding: 2px 4px;
+                font-family: "{_FONT_FAMILY}";
+                font-size: {_sz}pt;
+            }}
+            #OHotkeyInput:focus {{
+                border: {_bw}px solid {_bc_foc};
+            }}
+            #OHotkeyInput[recording="true"] {{
+                color: {_txt_rec};
+            }}
+        """)
         
     @property
     def _recording(self) -> bool:
@@ -198,6 +292,15 @@ class OTextBox(QTextEdit):
         height: Union[int, str] = 40,
         command: Optional[Callable[[str], None]] = None,
         on_enter: Optional[Callable[['OTextBox', str, str], None]] = None,
+        bg_color: Optional[str] = None,
+        bg_focus_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        border_focus_color: Optional[str] = None,
+        border_width: int = 1,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -205,6 +308,39 @@ class OTextBox(QTextEdit):
         apply_layout_dimensions(self, width, height)
         self._command = command
         self._on_enter_callback = on_enter
+        
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        _bg_foc = o_theme_val(theme, "bg_focus_color", bg_focus_color, _bg)
+        _txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
+        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE["primary"])
+        _bw = o_theme_val(theme, "border_width", border_width, 1)
+        _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+        _sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+
+        self.setStyleSheet(f"""
+            QTextEdit {{
+                background-color: {_bg};
+                color: {_txt};
+                border: {_bw}px solid {_bc};
+                border-radius: {_br}px;
+                padding: 2px 4px;
+                font-family: "{_FONT_FAMILY}";
+                font-size: {_sz}pt;
+            }}
+            QTextEdit:focus {{
+                border: {_bw}px solid {_bc_foc};
+                background-color: {_bg_foc};
+            }}
+            QTextEdit[readOnly="true"] {{
+                color: {OMNINATIVE["accent"]};
+                background-color: transparent;
+                border: {_bw}px solid {OMNINATIVE["gray"]};
+            }}
+            QTextEdit[readOnly="true"]:focus {{
+                border: {_bw}px solid {OMNINATIVE["primary"]};
+            }}
+        """)
         
         self.textChanged.connect(self._on_text_changed)
         
@@ -267,6 +403,15 @@ class OSpinBox(QWidget):
         spacing: int = 2,
         button_width: int = 24,
         show_buttons: bool = True,
+        bg_color: Optional[str] = None,
+        bg_focus_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        border_focus_color: Optional[str] = None,
+        border_width: int = 1,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -282,18 +427,24 @@ class OSpinBox(QWidget):
         self._command = command
         self._value = value
         
+        _btn_bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['dark'])
+        _btn_txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE['accent'])
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['gray'])
+        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE['primary'])
+        _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+
         btn_style = f"""
             QPushButton {{
-                background: {OMNINATIVE['dark']};
-                color: {OMNINATIVE['accent']};
-                border: 1px solid {OMNINATIVE['gray']};
-                border-radius: {_CORNER}px;
+                background: {_btn_bg};
+                color: {_btn_txt};
+                border: 1px solid {_bc};
+                border-radius: {_br}px;
                 text-align: center;
                 padding-bottom: 2px;
             }}
             QPushButton:hover {{
                 color: {OMNINATIVE['primary']};
-                border: 1px solid {OMNINATIVE['primary']};
+                border: 1px solid {_bc_foc};
             }}
         """
         
@@ -303,7 +454,20 @@ class OSpinBox(QWidget):
         self.btn_minus.setStyleSheet(btn_style)
         
         entry_w = "100%" if isinstance(width, str) and width in ("100%", "expand", "fill") else (width - button_width * 2 - (spacing * 2) if isinstance(width, int) and width > 0 else "100%")
-        self.entry = OLineEdit(self, width=entry_w, height=height)
+        self.entry = OLineEdit(
+            self, 
+            width=entry_w, 
+            height=height,
+            bg_color=bg_color,
+            bg_focus_color=bg_focus_color,
+            text_color=text_color,
+            border_color=border_color,
+            border_focus_color=border_focus_color,
+            border_width=border_width,
+            border_radius=border_radius,
+            font_size=font_size,
+            theme=theme
+        )
         self.entry.setAlignment(Qt.AlignCenter)
         self.entry.set(str(value))
         
@@ -362,6 +526,12 @@ class OSlider(QWidget):
         spacing: int = 6,
         entry_width: int = 40,
         show_entry: bool = True,
+        bg_color: Optional[str] = None,
+        primary_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -378,7 +548,15 @@ class OSlider(QWidget):
         self._slider.setValue(value)
         self._slider.setCursor(Qt.PointingHandCursor)
         
-        self._entry = OLineEdit(self, width=entry_width)
+        self._entry = OLineEdit(
+            self, 
+            width=entry_width,
+            bg_color=bg_color,
+            text_color=text_color,
+            border_color=border_color,
+            font_size=font_size,
+            theme=theme
+        )
         self._entry.setAlignment(Qt.AlignCenter)
         self._entry.set(str(value))
         
@@ -393,45 +571,50 @@ class OSlider(QWidget):
         self._slider.valueChanged.connect(self._on_slider_changed)
         self._entry.textChanged.connect(self._on_entry_changed)
         
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['dark'])
+        _primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE['primary'])
+        _accent = o_theme_val(theme, "accent_color", None, OMNINATIVE['accent'])
+        _bright = o_theme_val(theme, "bright_color", None, OMNINATIVE['bright'])
+
         self._slider.setStyleSheet(f"""
             QSlider::groove:horizontal {{
                 border: none;
                 height: 3px;
-                background: {OMNINATIVE['dark']};
+                background: {_bg};
                 border-radius: 1px;
             }}
             QSlider::handle:horizontal {{
-                background: {OMNINATIVE['accent']};
+                background: {_accent};
                 border: none;
                 width: 8px;
                 margin: -2px 0px -3px 0px;
                 border-radius: 4px;
             }}
             QSlider::handle:horizontal:hover {{
-                background: {OMNINATIVE['bright']};
+                background: {_bright};
             }}
             QSlider::sub-page:horizontal {{
-                background: {OMNINATIVE['primary']};
+                background: {_primary};
                 border-radius: 1px;
             }}
             QSlider::groove:vertical {{
                 border: none;
                 width: 3px;
-                background: {OMNINATIVE['dark']};
+                background: {_bg};
                 border-radius: 1px;
             }}
             QSlider::handle:vertical {{
-                background: {OMNINATIVE['accent']};
+                background: {_accent};
                 border: none;
                 height: 8px;
                 margin: 0px -3px 0px -2px;
                 border-radius: 4px;
             }}
             QSlider::handle:vertical:hover {{
-                background: {OMNINATIVE['bright']};
+                background: {_bright};
             }}
             QSlider::add-page:vertical {{
-                background: {OMNINATIVE['primary']};
+                background: {_primary};
                 border-radius: 1px;
             }}
         """)
@@ -475,6 +658,9 @@ class OProgressBar(QProgressBar):
         value: int = 0,
         width: Union[int, str] = "100%",
         height: Union[int, str] = 3,
+        bg_color: Optional[str] = None,
+        primary_color: Optional[str] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -489,14 +675,17 @@ class OProgressBar(QProgressBar):
         if cr < 1:
             cr = 1
             
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['dark'])
+        _primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE['primary'])
+
         self.setStyleSheet(f"""
             QProgressBar {{
                 border: none;
-                background-color: {OMNINATIVE['dark']};
+                background-color: {_bg};
                 border-radius: {cr}px;
             }}
             QProgressBar::chunk {{
-                background-color: {OMNINATIVE['primary']};
+                background-color: {_primary};
                 border-radius: {cr}px;
             }}
         """)

@@ -37,6 +37,12 @@ Key Exports:
 | :--- | :--- | :--- |
 | `__init__(size: int, color: str)` | `Constructor` | Creates the spinner. |
 
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `spinner_color` | `Optional[str]` | `None` | Spinner stroke color (defaults to `dark`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming. |
+
 ---
 
 ### `OAudioRecorderOverlay`
@@ -59,6 +65,13 @@ Key Exports:
 | `position_on_screen()` | `Method` | Positions the overlay dynamically based on the mouse position. Incluye soporte nativo DPI scaling multiscreen para Windows. |
 | `set_hotkey(hotkey_str: str)` | `Method` | Inherited. Sets the global hotkey to show/hide the recorder. |
 
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `bg_color` | `Optional[str]` | `None` | Pill background color (defaults to `bright`). |
+| `text_color` | `Optional[str]` | `None` | Transcribing text color and internal spinner (defaults to `dark`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming passed to waveform and spinner. |
+
 ---
 
 ### `OTooltip`
@@ -74,6 +87,17 @@ Key Exports:
 | :--- | :--- | :--- |
 | `__init__(text: str, width: Union[int, str])` | `Constructor` | Creates the tooltip with the given text and optional fixed or proportional width. |
 
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `bg_color` | `Optional[str]` | `None` | Tooltip background color (defaults to `dark`). |
+| `text_color` | `Optional[str]` | `None` | Tooltip text color (defaults to `accent`). |
+| `border_color` | `Optional[str]` | `None` | Tooltip border color (defaults to `bright`). |
+| `border_radius` | `Optional[int]` | `None` | Border radius (defaults to `_CORNER`). |
+| `font_size` | `Optional[int]` | `None` | Font size (defaults to `_FONT_SIZE_SM`). |
+| `pad` | `Optional[int]` | `None` | Padding (defaults to `_PAD`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming. |
+
 ---
 
 ### `OInfoIcon`
@@ -88,3 +112,10 @@ Key Exports:
 | Name | Type | Description |
 | :--- | :--- | :--- |
 | `__init__(parent, tooltip_text: str, size: int, position: str, tooltip_width: Union[int, str])` | `Constructor` | Creates the info icon. `position` can be `"auto"`, `"left"`, or `"right"`. `tooltip_width` adjusts the native width of the generated tooltip. |
+
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `icon_color` | `Optional[str]` | `None` | Default info icon color. |
+| `icon_hover_color` | `Optional[str]` | `None` | Hover state icon color (defaults to `primary`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming. Passed to tooltip. |

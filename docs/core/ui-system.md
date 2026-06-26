@@ -10,6 +10,7 @@ Visual components domain and base design system for the project, inspired by the
 2. **No Hardcoded Colors:** NEVER use hexadecimal strings or color names (e.g., `"red"`, `"#FF0000"`) in the application code. If you need direct colors, import `OMNINATIVE` from `omninative_ui` and index the design palette (`OMNINATIVE["primary"]`, `OMNINATIVE["danger"]`, `OMNINATIVE["dark"]`, etc).
 3. **Native Dialogs (QMessageBox, QFileDialog):** To prevent the global stylesheet from overriding the operating system's native interface (by inheritance), all invocations to OS dialogs must be instantiated by passing `None` as `parent` or invoking their static methods without a linked parent.
 4. **Packaging:** Always use PySide6's layout system (`QVBoxLayout`, `QHBoxLayout`) to arrange elements, or take advantage of the layouts generated in containers if indicated.
+5. **Global Theming (`theme={}` & `set_global_theme`):** ALL components support overriding their specific style properties (like `bg_color`, `text_color`, `border_color`, etc.) via direct `**kwargs` or by passing a `theme={}` dictionary containing those properties. This allows centralizing style overrides locally. To override the default palette for the **entire application**, use `set_global_theme(YOUR_PALETTE)` immediately after importing the module.
 
 ## 2. API Reference by Modules
 
@@ -32,7 +33,7 @@ These modules operate behind the scenes but can be imported in advanced cases:
 
 ### `tokens` (`omninative_ui/tokens.py`)
 Central dictionary of colors and base design variables.
-*Key Exports:* `OMNINATIVE`, `_FONT_FAMILY`, `_FONT_SIZE_SM`, `_CORNER`, `_PAD`
+*Key Exports:* `OMNINATIVE`, `_FONT_FAMILY`, `_FONT_SIZE_SM`, `_CORNER`, `_PAD`, `set_global_theme`
 
 ### `icons` (`omninative_ui/icons.py`)
 Vector icon generator by code using `QPainter` with a caching system.

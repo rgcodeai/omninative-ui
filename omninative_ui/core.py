@@ -18,14 +18,14 @@ from PySide6.QtCore import (
 
 from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _FONT_SIZE_LG, _CORNER, _PAD
 from .icons import _get_cached_checkbox, _get_cached_chevron
-from ._utils import get_global_stylesheet, apply_layout_dimensions, _StretchAwareHBoxLayout, _StretchAwareVBoxLayout
+from ._utils import get_global_stylesheet, apply_layout_dimensions, _StretchAwareHBoxLayout, _StretchAwareVBoxLayout, o_theme_val
 
 
 # ---------------------------------------------------------------------------
 # OWindow — Top-level window
 # ---------------------------------------------------------------------------
 class OWindow(QMainWindow):
-    def __init__(self, title: str = "OmniNative Plugin", width: int = 480, height: Union[int, str] = 620, resizable: bool = False, icon_path: Optional[str] = None) -> None:
+    def __init__(self, title: str = "OmniNative Plugin", width: int = 480, height: Union[int, str] = 620, resizable: bool = False, icon_path: Optional[str] = None, bg_color: Optional[str] = None, theme: Optional[Dict[str, Any]] = None) -> None:
         super().__init__()
         self.setWindowTitle(title)
         self.setWindowFlags(Qt.Window)
@@ -54,6 +54,10 @@ class OWindow(QMainWindow):
         self.central_widget = QWidget()
         self.central_widget.setObjectName("central_widget")
         self.setCentralWidget(self.central_widget)
+
+        _bg = o_theme_val(theme, "bg_color", bg_color, None)
+        if _bg:
+            self.central_widget.setStyleSheet(f"#central_widget {{ background-color: {_bg}; }}")
 
         self._root_layout = QVBoxLayout(self.central_widget)
         self._root_layout.setContentsMargins(0, 0, 0, 0)
@@ -108,6 +112,11 @@ class OGroup(QFrame):
         panel: bool = False,
         width: Union[int, str] = "auto",
         height: Union[int, str] = "auto",
+        bg_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        border_width: int = 1,
+        border_radius: Optional[int] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -124,16 +133,18 @@ class OGroup(QFrame):
 
         apply_layout_dimensions(self, width, height)
         
-        if panel:
-            self.setStyleSheet(f"""
-                OGroup {{
-                    background-color: {OMNINATIVE["background"]};
-                    border: 1px solid {OMNINATIVE["dark"]};
-                    border-radius: {_CORNER}px;
-                }}
-            """)
-        else:
-            self.setStyleSheet("OGroup { border: none; background-color: transparent; }")
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["background"] if panel else "transparent")
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["dark"] if panel else "transparent")
+        _bw = o_theme_val(theme, "border_width", border_width, 1 if panel else 0)
+        _br = o_theme_val(theme, "border_radius", border_radius, _CORNER if panel else 0)
+
+        self.setStyleSheet(f"""
+            OGroup {{
+                background-color: {_bg};
+                border: {_bw}px solid {_bc};
+                border-radius: {_br}px;
+            }}
+        """)
 
     def add(self, widget: QWidget, expand: bool = False, fill: str = "none", padx: int = 0, pady: int = 0) -> None:
         # Compatibility layer for CTk .pack() params
@@ -149,16 +160,33 @@ class OGroup(QFrame):
 # OLabel
 # ---------------------------------------------------------------------------
 class OLabel(QLabel):
-    def __init__(self, master: Optional[QWidget], text: str = "", bold: bool = False, bright: bool = False, size: Optional[int] = None, width: Union[int, str] = "auto", anchor: str = "w", **kwargs: Any) -> None:
+    def __init__(
+        self, 
+        master: Optional[QWidget], 
+        text: str = "", 
+        bold: bool = False, 
+        bright: bool = False, 
+        size: Optional[int] = None, 
+        width: Union[int, str] = "auto", 
+        anchor: str = "w", 
+        text_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        font_family: Optional[str] = None,
+        theme: Optional[Dict[str, Any]] = None,
+        **kwargs: Any
+    ) -> None:
         super().__init__(master)
         self.setText(text)
         
-        sz = size or _FONT_SIZE_SM
+        sz_arg = font_size if font_size is not None else size
+        sz = o_theme_val(theme, "font_size", sz_arg, _FONT_SIZE_SM)
         weight = QFont.Bold if bold else QFont.Normal
-        color = OMNINATIVE["accent"]
-        if bright: color = OMNINATIVE["bright"]
         
-        font = QFont(_FONT_FAMILY, sz, weight)
+        def_color = OMNINATIVE["bright"] if bright else OMNINATIVE["accent"]
+        color = o_theme_val(theme, "text_color", text_color, def_color)
+        family = o_theme_val(theme, "font_family", font_family, _FONT_FAMILY)
+        
+        font = QFont(family, sz, weight)
         self.setFont(font)
         self.setStyleSheet(f"color: {color}; background: transparent;")
         
@@ -178,11 +206,35 @@ class OLabel(QLabel):
 # OElidedLabel
 # ---------------------------------------------------------------------------
 class OElidedLabel(QLabel):
-    def __init__(self, text: str = "", parent: Optional[QWidget] = None, **kwargs: Any) -> None:
+    def __init__(
+        self, 
+        text: str = "", 
+        parent: Optional[QWidget] = None, 
+        bold: bool = False, 
+        bright: bool = False, 
+        size: Optional[int] = None,
+        text_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        font_family: Optional[str] = None,
+        theme: Optional[Dict[str, Any]] = None,
+        **kwargs: Any
+    ) -> None:
         super().__init__(text, parent)
         self._full_text = text
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.setMinimumWidth(1)
+
+        sz_arg = font_size if font_size is not None else size
+        sz = o_theme_val(theme, "font_size", sz_arg, _FONT_SIZE_SM)
+        weight = QFont.Bold if bold else QFont.Normal
+        
+        def_color = OMNINATIVE["bright"] if bright else OMNINATIVE["accent"]
+        color = o_theme_val(theme, "text_color", text_color, def_color)
+        family = o_theme_val(theme, "font_family", font_family, _FONT_FAMILY)
+        
+        font = QFont(family, sz, weight)
+        self.setFont(font)
+        self.setStyleSheet(f"color: {color}; background: transparent;")
 
     def setText(self, text: str) -> None:
         self._full_text = text
@@ -210,6 +262,10 @@ class OSectionHeader(QWidget):
         text: str = "",
         pad: int = 0,
         size: int = _FONT_SIZE_LG,
+        text_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        font_family: Optional[str] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -221,6 +277,10 @@ class OSectionHeader(QWidget):
             text=text,
             bright=True,
             size=size,
+            text_color=text_color,
+            font_size=font_size,
+            font_family=font_family,
+            theme=theme
         )
         layout.addWidget(lbl)
         layout.addStretch()
@@ -237,6 +297,8 @@ class OSeparator(QFrame):
         master: Optional[QWidget],
         height: int = 1,
         pad_y: int = 5,
+        color: Optional[str] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -250,7 +312,9 @@ class OSeparator(QFrame):
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Plain)
         line.setFixedHeight(height)
-        line.setStyleSheet(f"color: {OMNINATIVE['gray']}; background-color: {OMNINATIVE['gray']}; border: none;")
+        
+        c = o_theme_val(theme, "border_color", color, OMNINATIVE['gray'])
+        line.setStyleSheet(f"color: {c}; background-color: {c}; border: none;")
         
         layout.addWidget(line)
         self.setStyleSheet("background: transparent; border: none;")
@@ -274,6 +338,16 @@ class OButton(QPushButton):
         height: Union[int, str] = "auto",
         pad_x: int = 15,
         pad_y: int = 0,
+        bg_color: Optional[str] = None,
+        bg_hover_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        text_hover_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        border_hover_color: Optional[str] = None,
+        border_width: int = 1,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(text, master)
@@ -284,25 +358,22 @@ class OButton(QPushButton):
         if command:
             self.clicked.connect(command)
 
-        fg = "transparent"
-        hover = "transparent"
-        txt = OMNINATIVE["accent"]
-        bw = 1
-        bc = OMNINATIVE["accent"]
         h = height if isinstance(height, int) and height > 0 else (24 if small else 22)
         self.setFixedHeight(h)
         apply_layout_dimensions(self, width, h)
-        self._cr = h // 2
+        
+        self._cr = o_theme_val(theme, "border_radius", border_radius, h // 2)
+        self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 
-        if primary:
-            fg = "transparent"
-            hover = "transparent"
-            txt = OMNINATIVE["bright"]
-            bc = OMNINATIVE["bright"]
+        fg = o_theme_val(theme, "bg_color", bg_color, "transparent")
+        hover = o_theme_val(theme, "bg_hover_color", bg_hover_color, "transparent")
+        txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"] if primary else OMNINATIVE["accent"])
+        bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["bright"] if primary else OMNINATIVE["accent"])
+        bw = o_theme_val(theme, "border_width", border_width, 1)
 
-        sz = _FONT_SIZE_SM
-
-        enter_color = OMNINATIVE["danger"] if danger else OMNINATIVE["bright"]
+        def_enter_color = OMNINATIVE["danger"] if danger else OMNINATIVE["bright"]
+        hover_bc = o_theme_val(theme, "border_hover_color", border_hover_color, def_enter_color if not primary else bc)
+        hover_txt = o_theme_val(theme, "text_hover_color", text_hover_color, def_enter_color if not primary else txt)
 
         self._base_style = f"""
             QPushButton {{
@@ -311,14 +382,14 @@ class OButton(QPushButton):
                 border: {bw}px solid {bc};
                 border-radius: {self._cr}px;
                 font-family: '{_FONT_FAMILY}';
-                font-size: {sz}pt;
+                font-size: {self._sz}pt;
                 padding: {pad_y}px {pad_x}px {pad_y + 2}px {pad_x}px;
                 text-align: center;
             }}
             QPushButton:hover {{
                 background-color: {hover};
-                color: {enter_color if not primary else txt};
-                border-color: {enter_color if not primary else bc};
+                color: {hover_txt};
+                border-color: {hover_bc};
             }}
             QPushButton:disabled {{
                 color: {OMNINATIVE["dark"]};
@@ -414,9 +485,26 @@ class OComboBox(QFrame):
         item_height: int = 24,
         max_visible_items: int = 10,
         dropdown_pad_left: int = 10,
+        bg_color: Optional[str] = None,
+        bg_hover_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        text_hover_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        border_width: int = 1,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         self._transparent = transparent
+        self._custom_bg_color = o_theme_val(theme, "bg_color", bg_color, None)
+        self._custom_bg_hover_color = o_theme_val(theme, "bg_hover_color", bg_hover_color, None)
+        self._custom_text_color = o_theme_val(theme, "text_color", text_color, None)
+        self._custom_text_hover_color = o_theme_val(theme, "text_hover_color", text_hover_color, None)
+        self._custom_border_color = o_theme_val(theme, "border_color", border_color, None)
+        self._custom_border_width = o_theme_val(theme, "border_width", border_width, 1)
+        self._custom_border_radius = o_theme_val(theme, "border_radius", border_radius, None)
+        self._custom_font_size = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
         super().__init__(master)
 
         self._item_height = item_height
@@ -441,7 +529,7 @@ class OComboBox(QFrame):
         self._lbl_text.setFont(
             QFont(
                 _FONT_FAMILY,
-                _FONT_SIZE_SM,
+                self._custom_font_size,
             )
         )
         self._lbl_text.setStyleSheet(
@@ -467,7 +555,7 @@ class OComboBox(QFrame):
 
         self._chevron_pix = _get_cached_chevron(
             size=self._icon_size,
-            color=OMNINATIVE["accent"],
+            color=self._custom_text_color or OMNINATIVE["accent"],
         )
         self._lbl_chevron = QLabel(self)
         self._lbl_chevron.setPixmap(self._chevron_pix)
@@ -495,17 +583,21 @@ class OComboBox(QFrame):
             border_str = "border: none;"
             btn_bg = "transparent"
         else:
-            bg_color = OMNINATIVE["dark"]
-            border_str = f"border: 1px solid {OMNINATIVE['gray']};"
-            btn_bg = OMNINATIVE["dark"]
+            bg_color = self._custom_bg_color or OMNINATIVE["dark"]
+            b_color = self._custom_border_color or OMNINATIVE["gray"]
+            border_str = f"border: {self._custom_border_width}px solid {b_color};"
+            btn_bg = self._custom_bg_hover_color or self._custom_bg_color or OMNINATIVE["dark"]
 
-        text_color = OMNINATIVE["bright"]
+        text_color = self._custom_text_color or OMNINATIVE["bright"]
+        if is_hover and self._custom_text_hover_color:
+            text_color = self._custom_text_hover_color
+
         if not self.enabled:
             text_color = OMNINATIVE["accent"]
         elif self._current_value == "---":
             text_color = OMNINATIVE["accent"]
 
-        border_radius = _CORNER if not self._transparent else 0
+        border_radius = self._custom_border_radius if self._custom_border_radius is not None else (_CORNER if not self._transparent else 0)
 
         self.setStyleSheet(
             f"""
@@ -618,12 +710,16 @@ class OComboBox(QFrame):
 
         base_frame = QFrame(self._popup)
         base_frame.setObjectName("BaseFrame")
+        b_color = self._custom_border_color or OMNINATIVE["gray"]
+        br_popup = self._custom_border_radius if self._custom_border_radius is not None else 3
+        bg_popup = self._custom_bg_color or OMNINATIVE["background"]
+
         base_frame.setStyleSheet(
             f"""
             QFrame#BaseFrame {{
-                background-color: {OMNINATIVE["gray"]};
+                background-color: {b_color};
                 border: none;
-                border-radius: 3px;
+                border-radius: {br_popup}px;
             }}
             """
         )
@@ -642,12 +738,12 @@ class OComboBox(QFrame):
                 f"""
                 QScrollArea {{
                     border: none;
-                    background-color: {OMNINATIVE["background"]};
-                    border-radius: 2px;
+                    background-color: {bg_popup};
+                    border-radius: {self._custom_border_radius if self._custom_border_radius is not None else 2}px;
                 }}
                 QScrollBar:vertical {{
                     border: none;
-                    background: {OMNINATIVE["background"]};
+                    background: {bg_popup};
                     width: 6px;
                 }}
                 QScrollBar::handle:vertical {{
@@ -664,7 +760,7 @@ class OComboBox(QFrame):
 
             scroll_content = QWidget()
             scroll_content.setStyleSheet(
-                f"background-color: {OMNINATIVE['background']};"
+                f"background-color: {bg_popup};"
             )
             scroll_layout = QVBoxLayout(scroll_content)
             scroll_layout.setContentsMargins(0, 0, 0, 0)
@@ -678,9 +774,9 @@ class OComboBox(QFrame):
             container.setStyleSheet(
                 f"""
                 QFrame {{
-                    background-color: {OMNINATIVE["background"]};
+                    background-color: {bg_popup};
                     border: none;
-                    border-radius: 2px;
+                    border-radius: {self._custom_border_radius if self._custom_border_radius is not None else 2}px;
                 }}
                 """
             )
@@ -698,8 +794,15 @@ class OComboBox(QFrame):
                     debe_resaltar = val == val_hover
                 else:
                     debe_resaltar = val == self._current_value
-                bg = OMNINATIVE["dark"] if debe_resaltar else OMNINATIVE["background"]
-                tc = OMNINATIVE["bright"] if debe_resaltar else OMNINATIVE["accent"]
+                
+                bg_item_hover = self._custom_bg_hover_color or OMNINATIVE["dark"]
+                bg_item_normal = self._custom_bg_color or OMNINATIVE["background"]
+                bg = bg_item_hover if debe_resaltar else bg_item_normal
+                
+                tc_item_hover = self._custom_text_hover_color or self._custom_text_color or OMNINATIVE["bright"]
+                tc_item_normal = self._custom_text_color or OMNINATIVE["accent"]
+                tc = tc_item_hover if debe_resaltar else tc_item_normal
+                
                 btn.setStyleSheet(
                     f"""
                     QPushButton {{
@@ -709,7 +812,7 @@ class OComboBox(QFrame):
                         padding-left: {self._dropdown_pad_left}px;
                         text-align: left;
                         font-family: '{_FONT_FAMILY}';
-                        font-size: {_FONT_SIZE_SM}pt;
+                        font-size: {self._custom_font_size}pt;
                     }}
                     """
                 )
@@ -721,7 +824,7 @@ class OComboBox(QFrame):
             metrics = QFontMetrics(
                 QFont(
                     _FONT_FAMILY,
-                    _FONT_SIZE_SM,
+                    self._custom_font_size,
                 )
             )
             max_text_width = w - (30 if usar_scroll else 15)
@@ -789,10 +892,18 @@ class ORadioButton(QRadioButton):
         icon_position: str = "left",
         spacing: int = 8,
         icon_size: int = 12,
+        text_color: Optional[str] = None,
+        dot_color: Optional[str] = None,
+        bg_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(text, master)
-        self.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM))
+        
+        sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+        self.setFont(QFont(_FONT_FAMILY, sz))
         self.setCursor(Qt.PointingHandCursor)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         self._command = command
@@ -805,9 +916,14 @@ class ORadioButton(QRadioButton):
         if command:
             self.toggled.connect(lambda checked: command(1 if checked else 0))
             
+        txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE['accent'])
+        dot = o_theme_val(theme, "dot_color", dot_color, OMNINATIVE['primary'])
+        bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['dark'])
+        bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['bright'])
+        
         self.setStyleSheet(f"""
             QRadioButton {{
-                color: {OMNINATIVE['accent']};
+                color: {txt};
                 spacing: {spacing}px;
             }}
             QRadioButton:disabled {{
@@ -816,16 +932,16 @@ class ORadioButton(QRadioButton):
             QRadioButton::indicator {{
                 width: {icon_size}px;
                 height: {icon_size}px;
-                border: 1px solid {OMNINATIVE['bright']};
+                border: 1px solid {bc};
                 border-radius: {icon_size // 2 + 1}px;
-                background: {OMNINATIVE['dark']};
+                background: {bg};
             }}
             QRadioButton::indicator:checked {{
-                border: 1px solid {OMNINATIVE['primary']};
-                background: qradialgradient(cx:0.5, cy:0.5, radius: 0.5, fx:0.5, fy:0.5, stop:0 {OMNINATIVE['primary']}, stop:0.45 {OMNINATIVE['primary']}, stop:0.55 {OMNINATIVE['dark']}, stop:1 {OMNINATIVE['dark']});
+                border: 1px solid {dot};
+                background: qradialgradient(cx:0.5, cy:0.5, radius: 0.5, fx:0.5, fy:0.5, stop:0 {dot}, stop:0.45 {dot}, stop:0.55 {bg}, stop:1 {bg});
             }}
             QRadioButton::indicator:hover {{
-                border: 1px solid {OMNINATIVE['primary']};
+                border: 1px solid {dot};
             }}
         """)
         
@@ -851,6 +967,12 @@ class OCheckBoxBase(QWidget):
         spacing: int = 6,
         icon_position: str = "left",
         align: str = "left",
+        text_color: Optional[str] = None,
+        check_color: Optional[str] = None,
+        bg_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -866,6 +988,12 @@ class OCheckBoxBase(QWidget):
         self._icon_position = icon_position
         self._align = align
         
+        self._txt_c = o_theme_val(theme, "text_color", text_color, OMNINATIVE['accent'])
+        self._chk_c = o_theme_val(theme, "check_color", check_color, OMNINATIVE['primary'])
+        self._bg_c = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['dark'])
+        self._bc_c = o_theme_val(theme, "border_color", border_color, OMNINATIVE['bright'])
+        sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+        
         self.icon_lbl = QLabel()
         self.icon_lbl.setFixedSize(size, size)
         self.icon_lbl.setCursor(Qt.PointingHandCursor)
@@ -874,7 +1002,7 @@ class OCheckBoxBase(QWidget):
         if text:
             self.text_lbl = QLabel(text)
             self.text_lbl.setCursor(Qt.PointingHandCursor)
-            self.text_lbl.setStyleSheet(f"color: {OMNINATIVE['accent']}; font-size: {_FONT_SIZE_SM}pt;")
+            self.text_lbl.setStyleSheet(f"color: {self._txt_c}; font-size: {sz}pt;")
             self.text_lbl.mousePressEvent = self._on_click
             
         if self._align in ("right", "center"):
@@ -897,13 +1025,14 @@ class OCheckBoxBase(QWidget):
         self._update_icon()
         
     def _update_icon(self) -> None:
-        border_c = OMNINATIVE["primary"] if self._state else OMNINATIVE["bright"]
+        border_c = self._chk_c if self._state else self._bc_c
         pixmap = _get_cached_checkbox(
             size=self._size, 
             checked=self._state, 
-            corner_radius=self._corner_radius,
+            bg_color=self._bg_c,
             border_color=border_c,
-            check_color=OMNINATIVE["primary"]
+            check_color=self._chk_c,
+            corner_radius=self._corner_radius
         )
         self.icon_lbl.setPixmap(pixmap)
         
@@ -950,22 +1079,36 @@ class OTableCheckBox(OCheckBoxBase):
 # OStatusBar
 # ---------------------------------------------------------------------------
 class OStatusBar(QLabel):
-    def __init__(self, master: Optional[QWidget], **kwargs: Any) -> None:
+    def __init__(
+        self,
+        master: Optional[QWidget],
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[Dict[str, Any]] = None,
+        **kwargs: Any
+    ) -> None:
         super().__init__(master)
         self.setText("Ready")
-        self.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM))
-        self.setStyleSheet(f"color: {OMNINATIVE['accent']}; background: transparent;")
+        
+        self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+        self._bg = o_theme_val(theme, "bg_color", bg_color, "transparent")
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE['accent'])
+        self._theme = theme
+        
+        self.setFont(QFont(_FONT_FAMILY, self._sz))
+        self.setStyleSheet(f"color: {self._txt}; background: {self._bg};")
         
     def set(self, msg: str, level: str = "info") -> None:
         colors = {
-            "info": OMNINATIVE["accent"],
-            "success": OMNINATIVE["success"],
-            "error": OMNINATIVE["primary"],
-            "bright": OMNINATIVE["bright"],
+            "info": self._txt,
+            "success": o_theme_val(self._theme, "success_color", None, OMNINATIVE["success"]),
+            "error": o_theme_val(self._theme, "error_color", None, OMNINATIVE["primary"]),
+            "bright": o_theme_val(self._theme, "bright_color", None, OMNINATIVE["bright"]),
         }
         self.setText(msg)
-        color = colors.get(level, OMNINATIVE["accent"])
-        self.setStyleSheet(f"color: {color}; background: transparent;")
+        color = colors.get(level, self._txt)
+        self.setStyleSheet(f"color: {color}; background: {self._bg};")
         
     def pack(self, **kwargs: Any) -> None: pass
 
@@ -979,6 +1122,9 @@ class OOptionRow(QWidget):
         label_text: str = "",
         label_width: int = 100,
         pad_right: int = 12,
+        text_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -988,11 +1134,14 @@ class OOptionRow(QWidget):
         
         self.layout_.addStretch()
         
+        txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE['accent'])
+        sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+        
         self.label = QLabel(label_text)
         self.label.setFixedWidth(label_width)
         self.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.label.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM))
-        self.label.setStyleSheet(f"color: {OMNINATIVE['accent']}; padding-right: {pad_right}px;")
+        self.label.setFont(QFont(_FONT_FAMILY, sz))
+        self.label.setStyleSheet(f"color: {txt}; padding-right: {pad_right}px;")
         
         self.layout_.addWidget(self.label)
         

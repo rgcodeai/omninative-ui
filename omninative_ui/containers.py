@@ -44,7 +44,7 @@ from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER, _PAD
 from .icons import _get_cached_chevron
 from .core import OComboBox
 from .inputs import OTextBox
-from ._utils import apply_layout_dimensions
+from ._utils import apply_layout_dimensions, o_theme_val
 
 
 # -----------------------------------------------------------------------------------------------------------
@@ -56,6 +56,11 @@ class OScrollArea(QScrollArea):
         master: Optional[QWidget] = None,
         width: Union[int, str] = "100%",
         height: Union[int, str] = "auto",
+        bg_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        border_width: int = 1,
+        border_radius: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -63,11 +68,17 @@ class OScrollArea(QScrollArea):
         apply_layout_dimensions(self, width, height)
 
         self.setWidgetResizable(True)
+        
+        _bg = o_theme_val(theme, "bg_color", bg_color, "transparent")
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['dark'])
+        _bw = o_theme_val(theme, "border_width", border_width, 1)
+        _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+
         self.setStyleSheet(f"""
             QScrollArea {{
-                border: 1px solid {OMNINATIVE['dark']};
-                border-radius: {_CORNER}px;
-                background: transparent;
+                border: {_bw}px solid {_bc};
+                border-radius: {_br}px;
+                background: {_bg};
             }}
             QScrollArea > QWidget > QWidget {{
                 background: transparent;
@@ -122,8 +133,15 @@ class OTableItemDelegate(QStyledItemDelegate):
         painter.save()
         rect = option.rect
 
+        table = self.parent()
+        _bg = getattr(table, "_bg", OMNINATIVE["background"])
+        _alt_bg = getattr(table, "_alt_bg", OMNINATIVE["dark"])
+        _txt = getattr(table, "_txt", OMNINATIVE["accent"])
+        _bc = getattr(table, "_bc", OMNINATIVE["gray"])
+        _br = getattr(table, "_br", _CORNER)
+
         # No selection highlight
-        bg_color = QColor(OMNINATIVE["dark"]) if index.row() % 2 else QColor(OMNINATIVE["background"])
+        bg_color = QColor(_alt_bg) if index.row() % 2 else QColor(_bg)
         painter.fillRect(rect, bg_color)
 
         cls_name = self.col_config.get("class", "QLabel")
@@ -134,7 +152,7 @@ class OTableItemDelegate(QStyledItemDelegate):
         is_textbox = (cls_name == OTextBox or cls_name == "OTextBox")
 
         text = str(index.data(Qt.DisplayRole))
-        painter.setPen(QPen(QColor(OMNINATIVE["accent"])))
+        painter.setPen(QPen(QColor(_txt)))
 
         if is_combo:
             h = 22
@@ -145,7 +163,7 @@ class OTableItemDelegate(QStyledItemDelegate):
             painter.drawRoundedRect(box_rect, _CORNER, _CORNER)
 
         elif is_textbox:
-            painter.setPen(QPen(QColor(OMNINATIVE["accent"])))
+            painter.setPen(QPen(QColor(_txt)))
             painter.drawText(
                 rect.adjusted(8, 4, -8, -4),
                 Qt.AlignLeft | Qt.AlignTop | Qt.TextWordWrap,
@@ -198,20 +216,26 @@ class OTableItemDelegate(QStyledItemDelegate):
             editor = OTableTextEdit(parent)
             editor.document().setDocumentMargin(0)
             
-            base_bg = OMNINATIVE["dark"] if index.row() % 2 else OMNINATIVE["background"]
+            table = self.parent()
+            _bg = getattr(table, "_bg", OMNINATIVE["background"])
+            _alt_bg = getattr(table, "_alt_bg", OMNINATIVE["dark"])
+            _txt = getattr(table, "_txt", OMNINATIVE["accent"])
+            _primary = getattr(table, "_primary", OMNINATIVE["primary"])
+            
+            base_bg = _alt_bg if index.row() % 2 else _bg
             solid_bg = re.sub(r'\d+\)$', '255)', base_bg)
             
             editor.setStyleSheet(
                 f"QTextEdit {{\n"
                 f"background-color: {solid_bg}; "
-                f"color: {OMNINATIVE['accent']}; "
-                f"border: 1px solid {OMNINATIVE['primary']}; "
+                f"color: {_txt}; "
+                f"border: 1px solid {_primary}; "
                 f"border-radius: 0px; "
                 f"padding: 3px 7px;"
                 f"}}"
                 f"QTextEdit:focus {{\n"
                 f"outline: none;"
-                f"border: 1px solid {OMNINATIVE['primary']}; "
+                f"border: 1px solid {_primary}; "
                 f"}}"
                 f"QTextEdit > QWidget {{\n"
                 f"background-color: {solid_bg};"
@@ -223,7 +247,7 @@ class OTableItemDelegate(QStyledItemDelegate):
                 f"margin: 0px;"
                 f"}}"
                 f"QScrollBar::handle:vertical {{"
-                f"background: {OMNINATIVE['accent']};"
+                f"background: {_txt};"
                 f"min-height: 20px;"
                 f"border-radius: 3px;"
                 f"}}"
@@ -401,6 +425,16 @@ class OVirtualTable(QTableView):
         row_height: int = 24,
         header_height: int = 28,
         flexible_height: bool = False,
+        bg_color: Optional[str] = None,
+        alt_bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        header_bg_color: Optional[str] = None,
+        header_text_color: Optional[str] = None,
+        primary_color: Optional[str] = None,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -427,52 +461,62 @@ class OVirtualTable(QTableView):
             self.delegates.append(delegate)
             self.setItemDelegateForColumn(i, delegate)
 
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["background"])
+        self._alt_bg = o_theme_val(theme, "alt_bg_color", alt_bg_color, OMNINATIVE["dark"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["accent"])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
+        self._header_bg = o_theme_val(theme, "header_bg_color", header_bg_color, OMNINATIVE["dark"])
+        self._header_txt = o_theme_val(theme, "header_text_color", header_text_color, OMNINATIVE["accent"])
+        self._primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE["primary"])
+        self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+        self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+
         self._corner_filler = QLabel(self)
         self._corner_filler.setStyleSheet(
-            f"background-color: {OMNINATIVE['dark']}; border-bottom: 1px solid {OMNINATIVE['gray']}; border-top-right-radius: {_CORNER}px;"
+            f"background-color: {self._header_bg}; border-bottom: 1px solid {self._bc}; border-top-right-radius: {self._br}px;"
         )
 
         self.setStyleSheet(
             f"""
             QTableView {{
-                background-color: {OMNINATIVE["background"]};
-                border: 1px solid {OMNINATIVE["gray"]};
-                border-radius: {_CORNER}px;
+                background-color: {self._bg};
+                border: 1px solid {self._bc};
+                border-radius: {self._br}px;
                 gridline-color: transparent;
                 outline: 0;
             }}
             QTableView::item {{
-                border-bottom: 1px solid {OMNINATIVE["gray"]};
+                border-bottom: 1px solid {self._bc};
             }}
             QTableView::item:selected {{
                 background-color: transparent;
-                color: {OMNINATIVE["accent"]};
+                color: {self._txt};
             }}
             QHeaderView::section {{
-                background-color: {OMNINATIVE["dark"]};
-                color: {OMNINATIVE["accent"]};
+                background-color: {self._header_bg};
+                color: {self._header_txt};
                 padding: 4px 4px 4px 12px;
                 border: none;
-                border-bottom: 1px solid {OMNINATIVE["gray"]};
+                border-bottom: 1px solid {self._bc};
                 font-family: '{_FONT_FAMILY}';
-                font-size: {_FONT_SIZE_SM}pt;
+                font-size: {self._sz}pt;
                 font-weight: 700;
             }}
             QHeaderView::section:hover,
             QHeaderView::section:pressed,
             QHeaderView::section:checked {{
-                background-color: {OMNINATIVE["dark"]};
-                color: {OMNINATIVE["accent"]};
+                background-color: {self._header_bg};
+                color: {self._header_txt};
             }}
             QScrollBar:vertical {{
                 border: none;
-                background: {OMNINATIVE["background"]};
+                background: {self._bg};
                 width: 8px;
                 border-radius: 4px;
                 margin-top: {header_height}px;
             }}
             QScrollBar::handle:vertical {{
-                background: {OMNINATIVE["accent"]};
+                background: {self._txt};
                 border-radius: 4px;
             }}
         """
@@ -632,6 +676,11 @@ class OTreeWidget(QWidget):
         header_spacing: int = 8,
         indent: int = 20,
         content_spacing: int = 5,
+        text_color: Optional[str] = None,
+        icon_color: Optional[str] = None,
+        icon_hover_color: Optional[str] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -662,10 +711,15 @@ class OTreeWidget(QWidget):
         self.icon_lbl.setAlignment(Qt.AlignCenter)
         self.icon_lbl.setCursor(Qt.PointingHandCursor)
 
+        self._txt_color = o_theme_val(theme, "text_color", text_color, OMNINATIVE['bright'])
+        self._icon_color = o_theme_val(theme, "icon_color", icon_color, OMNINATIVE['accent'])
+        self._icon_hover_color = o_theme_val(theme, "icon_hover_color", icon_hover_color, self._txt_color)
+        _sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+
         self.text_lbl = QLabel(text)
         self.text_lbl.setFixedHeight(icon_height)
-        self.text_lbl.setFont(QFont(_FONT_FAMILY, _FONT_SIZE_SM))
-        self.text_lbl.setStyleSheet(f"color: {OMNINATIVE['bright']};")
+        self.text_lbl.setFont(QFont(_FONT_FAMILY, _sz))
+        self.text_lbl.setStyleSheet(f"color: {self._txt_color};")
         self.text_lbl.setCursor(Qt.PointingHandCursor)
 
         self.header_layout.addWidget(self.icon_lbl, 0, Qt.AlignVCenter)
@@ -705,7 +759,7 @@ class OTreeWidget(QWidget):
 
     def _update_icon(self) -> None:
         direction = "down" if self.expanded else "right"
-        color = OMNINATIVE['bright'] if self._hovered else OMNINATIVE['accent']
+        color = self._icon_hover_color if self._hovered else self._icon_color
         pixmap = _get_cached_chevron(size=self._icon_height, color=color, direction=direction, align="left")
         self.icon_lbl.setPixmap(pixmap)
 
@@ -729,6 +783,16 @@ class OTabs(QWidget):
         header_spacing: int = 4,
         tab_button_height: int = 20,
         content_gap: int = 10,
+        bg_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        tab_bg_color: Optional[str] = None,
+        tab_text_color: Optional[str] = None,
+        tab_active_bg_color: Optional[str] = None,
+        tab_active_text_color: Optional[str] = None,
+        tab_hover_text_color: Optional[str] = None,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        theme: Optional[dict] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(master)
@@ -736,6 +800,16 @@ class OTabs(QWidget):
         apply_layout_dimensions(self, width, height)
 
         self._tab_button_height = tab_button_height
+
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['background'])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['gray'])
+        self._tab_bg = o_theme_val(theme, "tab_bg_color", tab_bg_color, self._bg)
+        self._tab_txt = o_theme_val(theme, "tab_text_color", tab_text_color, OMNINATIVE['accent'])
+        self._tab_act_bg = o_theme_val(theme, "tab_active_bg_color", tab_active_bg_color, OMNINATIVE['dark'])
+        self._tab_act_txt = o_theme_val(theme, "tab_active_text_color", tab_active_text_color, OMNINATIVE['bright'])
+        self._tab_hov_txt = o_theme_val(theme, "tab_hover_text_color", tab_hover_text_color, OMNINATIVE['bright'])
+        self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+        self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 
         self.layout_ = QVBoxLayout(self)
         self.layout_.setContentsMargins(0, 0, 0, 0)
@@ -745,9 +819,9 @@ class OTabs(QWidget):
         self.header_container.setFixedHeight(header_height)
         self.header_container.setStyleSheet(f"""
             QFrame {{
-                background: {OMNINATIVE['background']};
-                border: 1px solid {OMNINATIVE['gray']};
-                border-radius: {_CORNER}px;
+                background: {self._bg};
+                border: 1px solid {self._bc};
+                border-radius: {self._br}px;
             }}
         """)
         self.header_layout = QHBoxLayout(self.header_container)
@@ -778,15 +852,15 @@ class OTabs(QWidget):
         btn.setCursor(Qt.PointingHandCursor)
         btn.setStyleSheet(f"""
             QPushButton {{
-                background: {OMNINATIVE['background']};
-                color: {OMNINATIVE['accent']};
+                background: {self._tab_bg};
+                color: {self._tab_txt};
                 border: none;
                 border-radius: 3px;
                 font-family: '{_FONT_FAMILY}';
-                font-size: {_FONT_SIZE_SM}pt;
+                font-size: {self._sz}pt;
             }}
             QPushButton:hover {{
-                color: {OMNINATIVE['bright']};
+                color: {self._tab_hov_txt};
             }}
         """)
 
@@ -814,12 +888,12 @@ class OTabs(QWidget):
             if t_name == name:
                 info["btn"].setStyleSheet(f"""
                     QPushButton {{
-                        background: {OMNINATIVE['dark']};
-                        color: {OMNINATIVE['bright']};
+                        background: {self._tab_act_bg};
+                        color: {self._tab_act_txt};
                         border: none;
                         border-radius: 3px;
                         font-family: '{_FONT_FAMILY}';
-                        font-size: {_FONT_SIZE_SM}pt;
+                        font-size: {self._sz}pt;
                     }}
                 """)
                 self.stacked_widget.setCurrentWidget(info["page"])
@@ -830,15 +904,15 @@ class OTabs(QWidget):
             else:
                 info["btn"].setStyleSheet(f"""
                     QPushButton {{
-                        background: {OMNINATIVE['background']};
-                        color: {OMNINATIVE['accent']};
+                        background: {self._tab_bg};
+                        color: {self._tab_txt};
                         border: none;
                         border-radius: 3px;
                         font-family: '{_FONT_FAMILY}';
-                        font-size: {_FONT_SIZE_SM}pt;
+                        font-size: {self._sz}pt;
                     }}
                     QPushButton:hover {{
-                        color: {OMNINATIVE['bright']};
+                        color: {self._tab_hov_txt};
                     }}
                 """)
         self._active_tab = name

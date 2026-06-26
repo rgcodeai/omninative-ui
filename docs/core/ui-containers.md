@@ -20,6 +20,11 @@ Description: Dynamic scrolling area. It will grow vertically as internal content
 | `master` | `Optional[QWidget]` | `None` | Parent container. |
 | `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding, `"auto"` = Hug. |
 | `height` | `Union[int, str]` | `"auto"` | Fixed height. `"auto"` = Hug. |
+| `bg_color` | `Optional[str]` | `None` | Background color. |
+| `border_color` | `Optional[str]` | `None` | Border color. |
+| `border_width` | `int` | `1` | Border width in px. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 #### Key Methods & Properties
 | Name | Type | Description |
@@ -62,6 +67,11 @@ Description: Collapsible tree node with a chevron icon header and indented conte
 | `header_spacing` | `int` | `8` | Spacing between icon and text in header. |
 | `indent` | `int` | `20` | Left indentation of nested content. |
 | `content_spacing` | `int` | `5` | Spacing between child widgets in the content area. |
+| `text_color` | `Optional[str]` | `None` | Text color. |
+| `icon_color` | `Optional[str]` | `None` | Chevron icon color. |
+| `icon_hover_color` | `Optional[str]` | `None` | Chevron icon color when hovered. |
+| `font_size` | `Optional[int]` | `None` | Font size in pt. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 #### Key Methods
 | Name | Type | Description |
@@ -107,6 +117,16 @@ Description: Tabbed container with a pill-style header bar and stacked content p
 | `header_spacing` | `int` | `4` | Spacing between tab buttons. |
 | `tab_button_height` | `int` | `20` | Height of individual tab buttons. |
 | `content_gap` | `int` | `10` | Spacing between header bar and content area (section-level gap). |
+| `bg_color` | `Optional[str]` | `None` | Background color for the header container. |
+| `border_color` | `Optional[str]` | `None` | Border color for the header container. |
+| `tab_bg_color` | `Optional[str]` | `None` | Background color for inactive tabs. |
+| `tab_text_color` | `Optional[str]` | `None` | Text color for inactive tabs. |
+| `tab_active_bg_color` | `Optional[str]` | `None` | Background color for active tab. |
+| `tab_active_text_color` | `Optional[str]` | `None` | Text color for active tab. |
+| `tab_hover_text_color` | `Optional[str]` | `None` | Text color when hovering over an inactive tab. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius for the header container. |
+| `font_size` | `Optional[int]` | `None` | Font size for tab labels. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 #### Key Methods
 | Name | Type | Description |
@@ -154,6 +174,16 @@ Description: Native table based on the Model/View (MVC) pattern and virtualizati
 | `row_height` | `int` | `24` | Height of each row. |
 | `header_height` | `int` | `28` | Height of the column header. |
 | `flexible_height` | `bool` | `False` | If `True`, rows stretch to fill available height. |
+| `bg_color` | `Optional[str]` | `None` | Background color for rows. |
+| `alt_bg_color` | `Optional[str]` | `None` | Background color for alternate rows. |
+| `text_color` | `Optional[str]` | `None` | Text color for cells. |
+| `border_color` | `Optional[str]` | `None` | Border color for grid and table. |
+| `header_bg_color` | `Optional[str]` | `None` | Background color for the header. |
+| `header_text_color` | `Optional[str]` | `None` | Text color for the header. |
+| `primary_color` | `Optional[str]` | `None` | Primary color for internal focus. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius for the table. |
+| `font_size` | `Optional[int]` | `None` | Font size for header and rows. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 #### Internal Cell Types (Delegates)
 To draw native controls inside cells, `column_widgets` uses the `class` key:

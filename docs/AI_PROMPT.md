@@ -7,6 +7,7 @@ You are an expert PySide6 developer using the **OmniNative UI** component librar
 1. **Never use raw QWidgets for UI elements**. Always use OmniNative components (e.g., `OButton` instead of `QPushButton`, `OLabel` instead of `QLabel`).
 2. **Unified Theme**: The library already handles the dark theme automatically. Do not manually set background colors or inject stylesheets unless absolutely necessary.
 3. **Structured Layouts**: Always use `OGroup` to group elements logically instead of raw `QFrame` or `QVBoxLayout`.
+4. **Global Theming**: ALL components support a `theme={}` dictionary parameter or direct `**kwargs` for overriding colors (`bg_color`, `text_color`, `border_color`, etc.). This should be the preferred way to style locally. To completely reskin the app globally, import and call `set_global_theme(NEW_PALETTE)` before initiating any components.
 
 ## Design & Layout Guidelines
 
@@ -94,6 +95,7 @@ sys.exit(app.exec())
 | `panel` | `bool` | `False` | Render a dark background panel with borders. |
 | `width` | `Union[int, str]` | `"auto"` | Width: `int`=fixed, `"100%"`=expand, `"N%"`=proportional, `"auto"`=hug. |
 | `height` | `Union[int, str]` | `"auto"` | Height: `int`=fixed, `"100%"`=expand, `"N%"`=proportional, `"auto"`=hug. |
+| `theme` | `Optional[dict]` | `None` | Dictionary for overriding `bg_color`, `border_color`, `border_radius`. |
 
 - **Implementation (Panels & Grids)**:
 
@@ -173,6 +175,13 @@ config_group.layout_.addWidget(lbl_desc)
 | `height` | `int` | `0` | Fixed height. `0` = auto. |
 | `pad_x` | `int` | `15` | Horizontal padding. |
 | `pad_y` | `int` | `0` | Vertical padding. |
+| `bg_color` / `bg_hover_color` | `str` | `None` | Custom background colors. |
+| `text_color` / `text_hover_color` | `str` | `None` | Custom text colors. |
+| `border_color` / `border_hover_color`| `str` | `None` | Custom border colors. |
+| `border_width` | `int` | `1` | Border width. |
+| `border_radius` | `int` | `None` | Custom border radius. |
+| `font_size` | `int` | `None` | Custom font size. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary (colors, fonts, borders). |
 
 - **Implementation**:
 
@@ -191,6 +200,34 @@ config_group.layout_.addWidget(btn_submit)
 
 ### Inputs
 
+#### `OComboBox`
+
+- **Supports**: Highly customized dropdown selector, 100% adaptable in styling to match any user design (colors, borders, fonts).
+- **Adjustable Props**:
+
+| Prop | Type | Default | Purpose |
+| :--- | :--- | :--- | :--- |
+| `values` | `List[Any]` | `None` | List of items. |
+| `command` | `Callable` | `None` | Selection callback. |
+| `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding. |
+| `height` | `Union[int, str]` | `22` | Fixed height. |
+| `bg_color` / `bg_hover_color` | `str` | `None` | Custom background colors. |
+| `text_color` / `text_hover_color` | `str` | `None` | Custom text & chevron colors. |
+| `border_color` / `border_radius` / `font_size` | `str`/`int` | `None` | Full design adaptability. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
+
+- **Implementation**:
+
+```python
+combo = OComboBox(
+    config_group, 
+    values=["A", "B"], 
+    bg_color="#FFFFFF", 
+    border_radius=8, 
+    text_color="#000"
+)
+```
+
 #### `OLineEdit` & `OTextBox`
 
 - **Supports**: Single-line text input (with optional password masking) and multi-line text blocks.
@@ -203,6 +240,7 @@ config_group.layout_.addWidget(btn_submit)
 | `placeholder` | `str` | `""` | Dimmed text when empty. |
 | `password` | `bool` | `False` | Hides the actual text. |
 | `read_only` | `bool` | `False` | Makes the field read-only. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Adjustable Props (`OTextBox`)**:
 
@@ -211,6 +249,7 @@ config_group.layout_.addWidget(btn_submit)
 | `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding, `"auto"` = Hug. |
 | `height` | `Union[int, str]` | `40` | Fixed height. `"auto"` = Hug. |
 | `placeholder` | `str` | `""` | Dimmed text when empty. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -235,6 +274,7 @@ config_group.layout_.addWidget(bio_input)
 | Prop | Type | Default | Purpose |
 | :--- | :--- | :--- | :--- |
 | `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -259,6 +299,7 @@ config_group.layout_.addWidget(hotkey_input)
 | `spacing` | `int` | `2` | Spacing between buttons and entry. |
 | `button_width` | `int` | `24` | Width of the increment/decrement buttons. |
 | `show_buttons` | `bool` | `True` | Show/hide the buttons. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Adjustable Props (`OSlider`)**:
 
@@ -269,6 +310,7 @@ config_group.layout_.addWidget(hotkey_input)
 | `spacing` | `int` | `6` | Spacing between slider and entry. |
 | `entry_width` | `int` | `40` | Width of the value entry field. |
 | `show_entry` | `bool` | `True` | Show/hide the entry field. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -295,6 +337,7 @@ config_group.layout_.addWidget(volume_slider)
 | `size` | `int` | `20` | Checkbox dimension. |
 | `icon_position`| `str` | `"left"` | Icon position relative to text (`"left"`, `"right"`). |
 | `align` | `str` | `"left"` | Alignment of the entire widget (`"left"`, `"right"`, `"center"`). |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Adjustable Props (`ORadioButton`)**:
 
@@ -304,6 +347,7 @@ config_group.layout_.addWidget(volume_slider)
 | `command` | `Callable` | `None` | Change callback. |
 | `icon_size` | `int` | `12` | Radio button dot dimension. |
 | `icon_position`| `str` | `"left"` | Icon position relative to text (`"left"`, `"right"`). |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -326,6 +370,7 @@ config_group.layout_.addWidget(check)
 | :--- | :--- | :--- | :--- |
 | `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding, `"auto"` = Hug. |
 | `height` | `Union[int, str]` | `3` | Fixed height. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -361,6 +406,7 @@ prog.set_indeterminate(True)
 | `show_record` | `bool` | `True` | Show/hide mic button. |
 | `show_load` | `bool` | `True` | Show/hide "Load File" button. |
 | `show_volume` | `bool` | `True` | Show/hide volume controls. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Controls Layout**: `[time] ——stretch—— [▶] [🎙] [⏹] ——stretch—— [🔊━━]`
 - **Implementation**:
@@ -393,6 +439,7 @@ player.file_loaded.connect(lambda path: print(f"Audio loaded: {path}"))
 | `bar_corner_radius` | `int` | `1` | Bar corner radius. |
 | `playhead_width` | `int` | `2` | Playhead line width. |
 | `height_ratio` | `float` | `0.8` | Proportion of height used for bars (0.0–1.0). |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -412,6 +459,7 @@ config_group.layout_.addWidget(waveform)
 | :--- | :--- | :--- | :--- |
 | `auto_start` | `bool` | `True` | Auto-start recording when the overlay appears. |
 | `chunk_ms` | `int` | `0` | Configure emitted audio chunks duration in ms (for real-time). `0` = OS default. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -437,6 +485,7 @@ recorder.audio_chunk_recorded.connect(lambda chunk: print(f"Got chunk of shape {
 | `size` | `int` | `20` | Size of the info icon. |
 | `position` | `str` | `"auto"` | Tooltip open direction (`"auto"`, `"left"`, or `"right"`). |
 | `tooltip_width` | `Union[int, str]`| `"auto"` | Tooltip width (`"auto"` to hug content, or fixed pixel size). |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -463,6 +512,7 @@ config_group.layout_.addWidget(info_icon)
 | `show_load` | `bool` | `True` | Show/hide "Load" button. |
 | `show_thumbnails` | `bool` | `True` | Show/hide thumbnail strip. |
 | `placeholder_text` | `str` | `""` | Custom placeholder when no image. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -500,6 +550,7 @@ filepath = viewer.get()
 | `button_spacing` | `int` | `5` | Gap between Open and Save buttons. |
 | `show_open` | `bool` | `True` | Show/hide "Open" button. |
 | `show_save` | `bool` | `True` | Show/hide "Save" button. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -526,6 +577,7 @@ fitem = OFileItem(config_group, filepath="/path/to/export.pdf", show_open=False)
 | :--- | :--- | :--- | :--- |
 | `width` | `Union[int, str]` | `"100%"` | Fixed width. `"100%"` = Expanding. |
 | `height` | `Union[int, str]` | `"auto"` | Fixed height. `"auto"` = Hug. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -551,6 +603,7 @@ config_group.layout_.addWidget(scroll)
 | `header_spacing` | `int` | `8` | Spacing between icon and text. |
 | `indent` | `int` | `20` | Left indentation of nested content. |
 | `content_spacing` | `int` | `5` | Spacing between child widgets. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -578,6 +631,7 @@ tree = OTreeWidget(config_group, text="Advanced", expanded=False, indent=12, hea
 | `header_spacing` | `int` | `4` | Spacing between tab buttons. |
 | `tab_button_height` | `int` | `20` | Height of each tab button. |
 | `content_gap` | `int` | `10` | Gap between header and content (section-level). |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -605,6 +659,7 @@ tabs = OTabs(config_group, header_height=22, tab_button_height=16, content_gap=5
 | `row_height` | `int` | `24` | Height of each data row. |
 | `header_height` | `int` | `28` | Height of the column header. |
 | `flexible_height` | `bool` | `False` | Rows stretch to fill available height. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 
@@ -631,6 +686,7 @@ table = OVirtualTable(config_group, columns=("Log",), hug=False, visible_rows=10
 | `height` | `Union[int, str]` | `"auto"` | Fixed height in px. `"auto"` = Hug. |
 | `pad` | `int` | `10` | Internal padding. |
 | `spacing` | `int` | `15` | Gap between chat bubbles. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Adjustable Props (`OChatInput`)**:
 
@@ -643,6 +699,7 @@ table = OVirtualTable(config_group, columns=("Log",), hug=False, visible_rows=10
 | `spacing` | `int` | `10` | Gap between elements. |
 | `show_add` | `bool` | `True` | Show/hide "+" attach button. |
 | `show_action`| `bool` | `True` | Show/hide send (arrow) button. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
 
 - **Implementation**:
 

@@ -20,6 +20,8 @@ Description: Main application window. Automatically injects the base global them
 | `height` | `Union[int, str]` | `620` | Initial window height. Si se pasa `"auto"`, habilita el modo "Hug": la altura se ajusta verticalmente al contenido nativamente, permitiendo que el contenido interno se expanda horizontalmente si hay espacio disponible. |
 | `resizable` | `bool` | `False` | If `True`, the window allows resizing. |
 | `icon_path` | `Optional[str]` | `None` | Path to a custom `.png` or `.ico` to be used as window icon. If not provided, a default vector OmniNative logo is generated. |
+| `bg_color` | `Optional[str]` | `None` | Custom window background color. |
+| `theme` | `Optional[dict]` | `None` | Dictionary containing a theme. |
 
 #### Key Methods & Properties
 | Name | Type | Description |
@@ -42,9 +44,14 @@ Description: Semantic container. Can be rendered transparent or darkened (`panel
 | `orientation` | `str` | `"v"` | Internal layout direction: `"v"` (Vertical) or `"h"` (Horizontal). |
 | `pad` | `int` | `0` | Internal padding (margins) inside the group. |
 | `spacing` | `int` | `5` | Spacing between elements inside the group. |
-| `panel` | `bool` | `False` | If `True`, the container draws a dark background and border (`#1E1E22`). |
+| `panel` | `bool` | `False` | If `True`, the container draws a dark background and border. |
 | `width` | `Union[int, str]` | `"auto"` | Width: `int`=fixed, `"100%"`=expand, `"N%"`=proportional, `"auto"`=hug. |
 | `height` | `Union[int, str]` | `"auto"` | Height: `int`=fixed, `"100%"`=expand, `"N%"`=proportional, `"auto"`=hug. |
+| `bg_color` | `Optional[str]` | `None` | Custom background color. |
+| `border_color` | `Optional[str]` | `None` | Custom border color. |
+| `border_width` | `int` | `1` | Border width in px. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 #### Key Methods
 | Name | Type | Description |
@@ -66,6 +73,10 @@ Description: Semantic elements for separating sections. `OSectionHeader` provide
 | `text` | `str` | `""` | The section title text. |
 | `pad` | `int` | `0` | Uniform padding. |
 | `size` | `int` | `_FONT_SIZE_LG` | Font size in points. |
+| `text_color` | `Optional[str]` | `None` | Custom text color. |
+| `font_size` | `Optional[int]` | `None` | Custom font size in pt. |
+| `font_family` | `Optional[str]` | `None` | Custom font family. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 #### Initialization (Props for OSeparator)
 | Prop | Type | Default | Description |
@@ -73,6 +84,8 @@ Description: Semantic elements for separating sections. `OSectionHeader` provide
 | `master` | `Optional[QWidget]` | | Parent container. |
 | `height` | `int` | `1` | Thickness of the gray line in px. |
 | `pad_y` | `int` | `5` | Vertical margin applied top and bottom. |
+| `color` | `Optional[str]` | `None` | Custom line color. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 ---
 
@@ -95,6 +108,16 @@ Description: General-purpose actionable button. Supports visual variants (primar
 | `height` | `int` | `0` | Fixed height. `0` = auto (24 if small else 22). |
 | `pad_x` | `int` | `15` | Horizontal internal padding. |
 | `pad_y` | `int` | `0` | Vertical internal padding. |
+| `bg_color` | `Optional[str]` | `None` | Custom background color (e.g. `"#FFFFFF"`). |
+| `bg_hover_color` | `Optional[str]` | `None` | Custom background color on hover. |
+| `text_color` | `Optional[str]` | `None` | Custom text color. |
+| `text_hover_color` | `Optional[str]` | `None` | Custom text color on hover. |
+| `border_color` | `Optional[str]` | `None` | Custom border color. |
+| `border_hover_color` | `Optional[str]` | `None` | Custom border color on hover. |
+| `border_width` | `int` | `1` | Border thickness in px. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius (if `None`, uses half height). |
+| `font_size` | `Optional[int]` | `None` | Custom font size in pt. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary for overriding styles via keys (`bg_color`, `border_color`, etc.). |
 
 #### Key Methods
 | Name | Type | Description |
@@ -119,6 +142,10 @@ Description: Descriptive texts. `OLabel` provides base typographic hierarchy. `O
 | `bright` | `bool` | `False` | Forces bright white color (`#FFFFFF`) instead of default dimmed text. |
 | `size` | `Optional[int]` | `None` | Force a specific font size in points (pt). |
 | `anchor` | `str` | `"w"` | Alignment: `"w"` (Left), `"e"` (Right), `"center"`. |
+| `text_color` | `Optional[str]` | `None` | Custom text color. |
+| `font_size` | `Optional[int]` | `None` | Custom font size in pt. |
+| `font_family` | `Optional[str]` | `None` | Custom font family. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 ---
 
@@ -144,6 +171,15 @@ Description: Highly customized dropdown selector (Combo Box) with translucent po
 | `item_height` | `int` | `24` | Height of each item in the popup dropdown. |
 | `max_visible_items` | `int` | `10` | Max items visible before scrolling in the popup. |
 | `dropdown_pad_left` | `int` | `10` | Left padding for the items in the dropdown. |
+| `bg_color` | `Optional[str]` | `None` | Custom background color (e.g. `"#FFFFFF"`). |
+| `bg_hover_color` | `Optional[str]` | `None` | Custom background color on hover. |
+| `text_color` | `Optional[str]` | `None` | Custom text and chevron color. |
+| `text_hover_color` | `Optional[str]` | `None` | Custom text and chevron color on hover. |
+| `border_color` | `Optional[str]` | `None` | Custom border color. |
+| `border_width` | `int` | `1` | Border thickness in px. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius (if `None`, uses global). |
+| `font_size` | `Optional[int]` | `None` | Custom font size in pt. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary for overriding styles via keys (`bg_color`, `border_color`, etc.). |
 
 #### Key Methods
 | Name | Type | Description |
@@ -171,6 +207,12 @@ Description: Mutually exclusive (Radio) or independent (Check) boolean state con
 | `icon_size` | `int` | `12` (Radio) / `20` (Check)| Size of the clickable icon. |
 | `icon_position` | `str` | `"left"` | Defines whether the control is on the left (`"left"`) or right (`"right"`) of the text. |
 | `align` | `str` | `"left"` | General alignment of the widget (`"left"`, `"right"`, `"center"`). |
+| `text_color` | `Optional[str]` | `None` | Custom text color. |
+| `dot_color` / `check_color` | `Optional[str]` | `None` | Color of the radio dot or the checkmark icon. |
+| `bg_color` | `Optional[str]` | `None` | Background color inside the circle/box. |
+| `border_color` | `Optional[str]` | `None` | Border color of the circle/box. |
+| `font_size` | `Optional[int]` | `None` | Custom font size in pt. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary for overriding styles via keys. |
 
 #### Key Methods
 | Name | Type | Description |
@@ -180,16 +222,25 @@ Description: Mutually exclusive (Radio) or independent (Check) boolean state con
 
 ---
 
-### `OStatusBar`
+### OStatusBar
 
 Path: `omninative_ui/core.py`
 Type: Component (QLabel)
 Description: Small text label specialized in notifying the current system status to the end user, usually arranged at the bottom of the window.
 
+#### Initialization (Props)
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `master` | `Optional[QWidget]` | | Parent container. |
+| `bg_color` | `Optional[str]` | `None` | Background color. |
+| `text_color` | `Optional[str]` | `None` | Base text color. |
+| `font_size` | `Optional[int]` | `None` | Font size in pt. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. Can include `success_color`, `error_color`, `bright_color` for the different levels. |
+
 #### Key Methods
 | Name | Type | Description |
 | :--- | :--- | :--- |
-| `set(msg: str, level: str = "info")` | Method | Changes the message. The `level` alters the color. Options: `"info"` (gray), `"success"` (green), `"error"` (red), `"bright"` (white). |
+| `set(msg: str, level: str = "info")` | Method | Changes the message. The `level` alters the color. Options: `"info"`, `"success"`, `"error"`, `"bright"`. |
 
 ---
 
@@ -206,6 +257,9 @@ Description: Utility layout in horizontal format that displays a Label on the le
 | `label_text` | `str` | `""` | Static text of the property to modify. |
 | `label_width` | `int` | `100` | Width of the text area. Useful for aligning multiple rows. |
 | `pad_right` | `int` | `12` | Padding to the right of the label. |
+| `text_color` | `Optional[str]` | `None` | Label text color. |
+| `font_size` | `Optional[int]` | `None` | Label font size. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 #### Key Properties
 | Name | Type | Description |

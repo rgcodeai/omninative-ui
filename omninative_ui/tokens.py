@@ -18,3 +18,9 @@ _FONT_SIZE_LG: int = 12
 _CORNER: int = 4
 _PAD: int = 4
 
+def set_global_theme(new_theme: Dict[str, str]) -> None:
+    """
+    Overwrites the global OMNINATIVE dictionary.
+    Call this right after importing the module and before instantiating any components.
+    """
+    OMNINATIVE.update(new_theme)

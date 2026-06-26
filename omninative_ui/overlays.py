@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen, QBrush, QIcon, QPixmap
 from PySide6.QtCore import Qt, Signal, QTimer, QRect, QPoint, QSize
 from .tokens import OMNINATIVE, _FONT_FAMILY, _FONT_SIZE_SM, _CORNER, _PAD
-from ._utils import apply_layout_dimensions
+from ._utils import apply_layout_dimensions, o_theme_val
 # Optional dependencies for audio and hotkeys
 try:
     import keyboard
@@ -110,9 +110,12 @@ import math
 import math
 class ORealtimeWaveform(QWidget):
     """A controlled aesthetic audio visualizer for recording."""
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent=None, color: Optional[str] = None, theme: Optional[dict] = None) -> None:
         from PySide6.QtWidgets import QWidget
+        from .tokens import OMNINATIVE
+        from ._utils import o_theme_val
         super().__init__(parent)
+        self._color = o_theme_val(theme, "waveform_color", color, OMNINATIVE["dark"])
         self.setMinimumWidth(90)
         self.setFixedHeight(41)
         self._is_talking = False
@@ -147,7 +150,7 @@ class ORealtimeWaveform(QWidget):
                 bar_w = 2.0
                 bar_spacing = 3.0
                 
-                color = QColor(OMNINATIVE["dark"])
+                color = QColor(self._color)
                 
                 total_bars_width = len(self._pattern) * (bar_w + bar_spacing) - bar_spacing
                 start_x = (w - total_bars_width) / 2.0
@@ -190,12 +193,13 @@ class ORealtimeWaveform(QWidget):
 
 class OSpinner(QWidget):
     """A minimal spinning loading icon."""
-    def __init__(self, parent=None, size=16, color=None) -> None:
+    def __init__(self, parent=None, size=16, color=None, theme: Optional[dict] = None) -> None:
         from PySide6.QtCore import QTimer
         from .tokens import OMNINATIVE
+        from ._utils import o_theme_val
         super().__init__(parent)
         self.setFixedSize(size, size)
-        self._color = color or OMNINATIVE["dark"]
+        self._color = o_theme_val(theme, "spinner_color", color, OMNINATIVE["dark"])
         self._angle = 0
         self._timer = QTimer(self)
         self._timer.setInterval(20)
@@ -238,7 +242,17 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
     recording_finished = Signal(str)  # Emits the path to the saved wav file
     audio_chunk_recorded = Signal(object)  # Emits numpy ndarray chunks in real-time
     
-    def __init__(self, master=None, auto_start: bool = True, chunk_ms: int = 0, transcribing_text: str = "Working", enable_processing_state: bool = False) -> None:
+    def __init__(
+        self,
+        master=None,
+        auto_start: bool = True,
+        chunk_ms: int = 0,
+        transcribing_text: str = "Working",
+        enable_processing_state: bool = False,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        theme: Optional[dict] = None
+    ) -> None:
         from PySide6.QtWidgets import QHBoxLayout, QLabel
         from PySide6.QtCore import Qt, QTimer
         from .tokens import OMNINATIVE, _FONT_FAMILY
@@ -246,6 +260,10 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
         self.auto_start = auto_start
         self.chunk_ms = chunk_ms
         self.enable_processing_state = enable_processing_state
+        
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["bright"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["dark"])
+        self._theme = theme
         
         self.setFixedSize(125, 41)
         
@@ -275,18 +293,18 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
         self.layout_.setSpacing(0)
         
         # Realtime Waveform
-        self.waveform = ORealtimeWaveform(self.content_container)
+        self.waveform = ORealtimeWaveform(self.content_container, theme=self._theme)
         self.layout_.addWidget(self.waveform, 1, Qt.AlignCenter)
         
         # Transcribing Container
         self.transcribing_widget = QWidget(self.content_container)
         self.transcribing_widget.setFixedSize(125, 41)
         
-        self.transcribing_spinner = OSpinner(self.transcribing_widget, size=14, color=OMNINATIVE["dark"])
+        self.transcribing_spinner = OSpinner(self.transcribing_widget, size=14, color=self._txt, theme=self._theme)
         
         self.transcribing_text = transcribing_text
         self.transcribing_label = QLabel(transcribing_text + "...", self.transcribing_widget)
-        self.transcribing_label.setStyleSheet(f"color: {OMNINATIVE['dark']}; font-family: {_FONT_FAMILY}; font-size: 13px; font-weight: bold; padding-bottom: 2px; margin: 0px;")
+        self.transcribing_label.setStyleSheet(f"color: {self._txt}; font-family: {_FONT_FAMILY}; font-size: 13px; font-weight: bold; padding-bottom: 2px; margin: 0px;")
         self.transcribing_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.transcribing_label.adjustSize()
         self.transcribing_label.setText(transcribing_text)
@@ -410,8 +428,8 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
                 radius = h / 2.0
                 path.addRoundedRect(QRectF(x, 0, current_w, h), radius, radius)
                 
-                # Slightly translucent bright background (Cross-OS compatible)
-                bg_color = QColor(OMNINATIVE["bright"])
+                # Slightly translucent background (Cross-OS compatible)
+                bg_color = QColor(self._bg)
                 
                 if getattr(self, '_is_closing', False):
                     # Fades out as it shrinks, reaching 0 opacity just as it becomes a circle
@@ -575,7 +593,18 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
             self.waveform.set_intensity(0.0)
 
 class OTooltip(QWidget):
-    def __init__(self, text: str, width: Any = "auto"):
+    def __init__(
+        self,
+        text: str,
+        width: Any = "auto",
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        border_color: Optional[str] = None,
+        border_radius: Optional[int] = None,
+        font_size: Optional[int] = None,
+        pad: Optional[int] = None,
+        theme: Optional[dict] = None
+    ):
         super().__init__()
         from PySide6.QtWidgets import QLabel, QVBoxLayout
         from PySide6.QtCore import Qt
@@ -583,6 +612,13 @@ class OTooltip(QWidget):
         self.setWindowFlags(Qt.ToolTip | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.X11BypassWindowManagerHint)
         self.setAttribute(Qt.WA_ShowWithoutActivating)
         self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["accent"])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["bright"])
+        self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
+        self._fs = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
+        self._pad = o_theme_val(theme, "pad", pad, _PAD)
         
         self.label = QLabel(text)
         self.label.setWordWrap(True)
@@ -594,19 +630,29 @@ class OTooltip(QWidget):
         
         self.label.setStyleSheet(f"""
             QLabel {{
-                background-color: {OMNINATIVE['dark']};
-                color: {OMNINATIVE['accent']};
-                border: 1px solid {OMNINATIVE['bright']};
-                border-radius: {_CORNER}px;
-                padding: {_PAD}px;
+                background-color: {self._bg};
+                color: {self._txt};
+                border: 1px solid {self._bc};
+                border-radius: {self._br}px;
+                padding: {self._pad}px;
                 font-family: {_FONT_FAMILY};
-                font-size: {_FONT_SIZE_SM}pt;
+                font-size: {self._fs}pt;
             }}
         """)
 
 class OInfoIcon(QLabel):
     """An info icon that shows a custom tooltip on hover."""
-    def __init__(self, parent=None, tooltip_text: str = "", size: int = 20, position: str = "auto", tooltip_width: Any = "auto") -> None:
+    def __init__(
+        self,
+        parent=None,
+        tooltip_text: str = "",
+        size: int = 20,
+        position: str = "auto",
+        tooltip_width: Any = "auto",
+        icon_color: Optional[str] = None,
+        icon_hover_color: Optional[str] = None,
+        theme: Optional[dict] = None
+    ) -> None:
         from PySide6.QtCore import Qt
         from .icons import _get_cached_info_icon
         super().__init__(parent)
@@ -614,7 +660,12 @@ class OInfoIcon(QLabel):
         self.tooltip_width = tooltip_width
         self.position = position
         self.icon_size = size
-        self.setPixmap(_get_cached_info_icon(size=self.icon_size))
+        
+        self._icon = o_theme_val(theme, "icon_color", icon_color, None)
+        self._icon_hov = o_theme_val(theme, "icon_hover_color", icon_hover_color, OMNINATIVE["primary"])
+        self._theme = theme
+        
+        self.setPixmap(_get_cached_info_icon(size=self.icon_size, color=self._icon))
         self.setFixedSize(size, size)
         self.setAlignment(Qt.AlignCenter)
         self.custom_tooltip = None
@@ -623,10 +674,10 @@ class OInfoIcon(QLabel):
         from .icons import _get_cached_info_icon
         from .tokens import OMNINATIVE
         
-        self.setPixmap(_get_cached_info_icon(size=self.icon_size, color=OMNINATIVE["primary"]))
+        self.setPixmap(_get_cached_info_icon(size=self.icon_size, color=self._icon_hov))
         
         if not self.custom_tooltip and self.tooltip_text:
-            self.custom_tooltip = OTooltip(self.tooltip_text, width=self.tooltip_width)
+            self.custom_tooltip = OTooltip(self.tooltip_text, width=self.tooltip_width, theme=self._theme)
             
         if self.custom_tooltip:
             self.custom_tooltip.adjustSize()
@@ -653,7 +704,7 @@ class OInfoIcon(QLabel):
     def leaveEvent(self, event) -> None:
         from .icons import _get_cached_info_icon
         
-        self.setPixmap(_get_cached_info_icon(size=self.icon_size))
+        self.setPixmap(_get_cached_info_icon(size=self.icon_size, color=self._icon))
         
         if self.custom_tooltip:
             self.custom_tooltip.hide()

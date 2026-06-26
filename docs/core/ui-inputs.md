@@ -21,6 +21,15 @@ Description: Standardized single-line text field. Supports placeholder and passw
 | `placeholder` | `str` | `""` | Dimmed text shown when the field is empty. |
 | `password` | `bool` | `False` | Hides the actual text using the standard password character (`*`). |
 | `read_only` | `bool` | `False` | Makes the field read-only. |
+| `bg_color` | `Optional[str]` | `None` | Background color. |
+| `bg_focus_color` | `Optional[str]` | `None` | Background color when focused. |
+| `text_color` | `Optional[str]` | `None` | Text color. |
+| `border_color` | `Optional[str]` | `None` | Border color. |
+| `border_focus_color` | `Optional[str]` | `None` | Border color when focused. |
+| `border_width` | `int` | `1` | Border width in px. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius. |
+| `font_size` | `Optional[int]` | `None` | Font size in pt. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 **Layout & Dimensions:**
 | Prop | Type | Default | Description |
@@ -58,6 +67,15 @@ Description: A special line edit that captures keystrokes and formats them as ho
 | Prop | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `master` | `Optional[QWidget]` | | Parent container. |
+| `bg_color` | `Optional[str]` | `None` | Background color. |
+| `text_color` | `Optional[str]` | `None` | Text color. |
+| `text_recording_color` | `Optional[str]` | `None` | Text color when recording hotkey. |
+| `border_color` | `Optional[str]` | `None` | Border color. |
+| `border_focus_color` | `Optional[str]` | `None` | Border color when focused. |
+| `border_width` | `int` | `1` | Border width in px. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius. |
+| `font_size` | `Optional[int]` | `None` | Font size in pt. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 #### Usage Examples
 
@@ -81,6 +99,15 @@ Description: Rich / multi-line text input field.
 | `master` | `Optional[QWidget]` | | Parent container. |
 | `placeholder` | `str` | `""` | Dimmed text when empty. |
 | `command` | `Optional[Callable]`| `None` | Callback for text changes. |
+| `bg_color` | `Optional[str]` | `None` | Background color. |
+| `bg_focus_color` | `Optional[str]` | `None` | Background color when focused. |
+| `text_color` | `Optional[str]` | `None` | Text color. |
+| `border_color` | `Optional[str]` | `None` | Border color. |
+| `border_focus_color` | `Optional[str]` | `None` | Border color when focused. |
+| `border_width` | `int` | `1` | Border width in px. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius. |
+| `font_size` | `Optional[int]` | `None` | Font size in pt. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 **Layout & Dimensions:**
 | Prop | Type | Default | Description |
@@ -123,6 +150,15 @@ Description: Numerical input field with integrated increment/decrement arrows. A
 | `value` | `int` | `0` | Initial value. |
 | `step` | `int` | `1` | Increment/decrement step. |
 | `command` | `Optional[Callable]`| `None` | Callback executed when value changes. |
+| `bg_color` | `Optional[str]` | `None` | Background color. |
+| `bg_focus_color` | `Optional[str]` | `None` | Background color when focused. |
+| `text_color` | `Optional[str]` | `None` | Text color. |
+| `border_color` | `Optional[str]` | `None` | Border color. |
+| `border_focus_color` | `Optional[str]` | `None` | Border color when focused. |
+| `border_width` | `int` | `1` | Border width in px. |
+| `border_radius` | `Optional[int]` | `None` | Custom border radius. |
+| `font_size` | `Optional[int]` | `None` | Font size in pt. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 **Layout & Dimensions:**
 | Prop | Type | Default | Description |
@@ -181,6 +217,12 @@ Description: Sliding bar (Slider) that doesn't steal mouse wheel focus by defaul
 | `pad` | `int` | `0` | Internal padding. |
 | `spacing` | `int` | `6` | Spacing between slider and entry. |
 | `entry_width` | `int` | `40` | Width of the text entry. |
+| `bg_color` | `Optional[str]` | `None` | Background color for slider groove. |
+| `primary_color` | `Optional[str]` | `None` | Color for slider active bar. |
+| `text_color` | `Optional[str]` | `None` | Text color for the entry field. |
+| `border_color` | `Optional[str]` | `None` | Border color for the entry field. |
+| `font_size` | `Optional[int]` | `None` | Font size for the entry field. |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 **Visibility:**
 | Prop | Type | Default | Description |
@@ -226,6 +268,9 @@ Description: Progress bar for long-running tasks. Can operate in determinate or 
 | :--- | :--- | :--- | :--- |
 | `width` | `Union[int, str]` | `"100%"` | Fixed width in px. `"100%"` = Expanding, `"auto"` = Hug. |
 | `height` | `Union[int, str]` | `3` | Fixed height in px. `"auto"` = Hug. |
+| `bg_color` | `Optional[str]` | `None` | Background color (track). |
+| `primary_color` | `Optional[str]` | `None` | Foreground color (progress chunk). |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
 
 #### Usage Examples
 

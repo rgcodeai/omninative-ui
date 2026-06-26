@@ -25,6 +25,17 @@ Description: Message history in bubble format (Chat). Renders the visual distinc
 | `pad` | `int` | `10` | Internal padding inside the scroll area. |
 | `spacing` | `int` | `15` | Spacing between messages. |
 
+**Theming (applied to OChatMessage internally):**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `user_bg_color` | `Optional[str]` | `None` | User bubble background (defaults to `dark`). |
+| `user_text_color` | `Optional[str]` | `None` | User text color (defaults to `bright`). |
+| `assistant_bg_color` | `Optional[str]` | `None` | Assistant bubble background (defaults to `"transparent"`). |
+| `assistant_text_color` | `Optional[str]` | `None` | Assistant text color (defaults to `bright`). |
+| `border_radius` | `Optional[int]` | `None` | Border radius for bubbles (defaults to `_CORNER`). |
+| `font_size` | `Optional[int]` | `None` | Base font size (defaults to `_FONT_SIZE_SM`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming overriding defaults. |
+
 #### Usage Examples
 ```python
 # Default
@@ -75,6 +86,18 @@ Description: Multi-line text box anchored at the bottom of the chat, with an int
 | `show_add` | `bool` | `True` | Show/hide the "+" add button. |
 | `show_action`| `bool` | `True` | Show/hide the action (arrow) button. |
 
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `bg_color` | `Optional[str]` | `None` | Input container background (defaults to `dark`). |
+| `text_color` | `Optional[str]` | `None` | Input text color (defaults to `bright`). |
+| `icon_color` | `Optional[str]` | `None` | '+' Add button icon color (defaults to `accent`). |
+| `icon_hover_color` | `Optional[str]` | `None` | '+' Add button icon hover color (defaults to `bright`). |
+| `button_bg_color` | `Optional[str]` | `None` | Send button background color (defaults to `bright`). |
+| `button_icon_color` | `Optional[str]` | `None` | Send button arrow icon color (defaults to `gray`). |
+| `button_icon_hover_color`| `Optional[str]` | `None` | Send button arrow hover color (defaults to `background`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming. |
+
 #### Usage Examples
 ```python
 # Default
@@ -112,6 +135,16 @@ Description: Compact grid of buttons or suggested actions. Commonly used above `
 | `height` | `Union[int, str]` | `"auto"` | Fixed height in px. `"auto"` = Hug. |
 | `pad` | `int` | `6` | Internal padding. |
 | `spacing` | `int` | `2` | Spacing between menu items. |
+
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `bg_color` | `Optional[str]` | `None` | Menu background color (defaults to `"#2F2F2F"`). |
+| `border_color` | `Optional[str]` | `None` | Menu border color (defaults to `"#3F3F3F"`). |
+| `separator_color` | `Optional[str]` | `None` | Separator line color (defaults to `dark`). |
+| `bg_hover_color` | `Optional[str]` | `None` | Menu item hover background (defaults to `dark`). Passed to `OActionMenuItem`. |
+| `text_color` | `Optional[str]` | `None` | Menu item text and icon color (defaults to `bright`). Passed to `OActionMenuItem`. |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming. |
 
 #### Usage Examples
 ```python

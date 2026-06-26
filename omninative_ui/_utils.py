@@ -1,6 +1,6 @@
 # omninative_ui/_utils.py
 import re
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Any
 
 from PySide6.QtCore import QByteArray, QBuffer, QIODevice
 from PySide6.QtWidgets import QWidget, QSizePolicy, QHBoxLayout, QVBoxLayout
@@ -204,3 +204,9 @@ def get_global_stylesheet() -> str:
         }}
     """
 
+def o_theme_val(theme: dict | None, key: str, explicit_val: Any, default_val: Any) -> Any:
+    if explicit_val is not None:
+        return explicit_val
+    if theme and key in theme:
+        return theme[key]
+    return default_val

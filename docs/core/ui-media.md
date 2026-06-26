@@ -37,6 +37,18 @@ Description: Full audio player with native playback (via `QtMultimedia`), top na
 | `show_load` | `bool` | `True` | Show/hide the "Load File" button. |
 | `show_volume` | `bool` | `True` | Show/hide volume icon and slider. |
 
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `text_color` | `Optional[str]` | `None` | Title text color (defaults to `bright`). |
+| `secondary_text_color` | `Optional[str]` | `None` | Time and icon colors (defaults to `accent`). |
+| `slider_bg_color` | `Optional[str]` | `None` | Volume slider background (defaults to `dark`). |
+| `slider_fill_color` | `Optional[str]` | `None` | Volume slider active fill (defaults to `primary`). |
+| `slider_handle_color` | `Optional[str]` | `None` | Volume slider handle (defaults to `bright`). |
+| `slider_handle_hover_color` | `Optional[str]` | `None` | Volume slider handle hover (defaults to `primary`). |
+| `font_size` | `Optional[int]` | `None` | Font size for texts (defaults to `_FONT_SIZE_SM`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming overriding defaults. |
+
 #### Controls Layout Order
 
 ```
@@ -91,6 +103,15 @@ Description: Visual waveform component using native `QPainter`. Graphs audio pea
 | `bar_corner_radius` | `int` | `1` | Corner radius of each bar in px. |
 | `playhead_width` | `int` | `2` | Width of the playhead indicator line in px. |
 | `height_ratio` | `float` | `0.8` | Proportion of widget height used for bar drawing (0.0–1.0). |
+
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `bg_color` | `Optional[str]` | `None` | Background color of the waveform (defaults to `dark`). |
+| `primary_color` | `Optional[str]` | `None` | Played portion color (defaults to `primary`). |
+| `secondary_color` | `Optional[str]` | `None` | Unplayed portion and hover guide color (defaults to `accent`). |
+| `center_line_color` | `Optional[str]` | `None` | Center line color (defaults to `gray`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming. |
 
 #### Signals
 | Name | Type | Description |
@@ -147,6 +168,19 @@ Description: Embedded image viewer and gallery with thumbnail strip, fullscreen 
 | `show_load` | `bool` | `True` | Show/hide the "Load" button. |
 | `show_thumbnails` | `bool` | `True` | Show/hide thumbnail strip when >1 images. |
 | `placeholder_text` | `str` | `""` | Custom placeholder text. Default: `"Click 'Load' to add images"`. |
+
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `bg_color` | `Optional[str]` | `None` | Background color for containers (defaults to `dark`). |
+| `border_color` | `Optional[str]` | `None` | Border color for containers (defaults to `gray`). |
+| `text_color` | `Optional[str]` | `None` | Title text color (defaults to `bright`). |
+| `secondary_text_color` | `Optional[str]` | `None` | Placeholder text color (defaults to `accent`). |
+| `thumbnail_border_color` | `Optional[str]` | `None` | Unselected thumbnail border (defaults to `gray`). |
+| `thumbnail_active_border_color` | `Optional[str]` | `None` | Selected thumbnail border (defaults to `bright`). |
+| `border_radius` | `Optional[int]` | `None` | Border radius for containers (defaults to `_CORNER`). |
+| `font_size` | `Optional[int]` | `None` | Font size for texts (defaults to `_FONT_SIZE_SM`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming. |
 
 #### Signals
 | Name | Type | Description |
@@ -225,6 +259,19 @@ Description: Card component displaying a file's icon, name, and size with Open/S
 | `button_spacing` | `int` | `5` | Spacing between the Open and Save buttons in px. |
 | `show_open` | `bool` | `True` | Show/hide the "Open" button. |
 | `show_save` | `bool` | `True` | Show/hide the "Save" button. |
+
+**Theming:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `bg_color` | `Optional[str]` | `None` | Card background color (defaults to `dark`). |
+| `border_color` | `Optional[str]` | `None` | Card border color (defaults to `gray`). |
+| `hover_border_color` | `Optional[str]` | `None` | Border color on hover (defaults to `primary`). |
+| `text_color` | `Optional[str]` | `None` | Primary filename color (defaults to `bright`). |
+| `secondary_text_color` | `Optional[str]` | `None` | File size color (defaults to `accent`). |
+| `icon_color` | `Optional[str]` | `None` | Color for the file icon (defaults to `primary`). |
+| `border_radius` | `Optional[int]` | `None` | Card border radius (defaults to `_CORNER`). |
+| `font_size` | `Optional[int]` | `None` | Base font size (defaults to `_FONT_SIZE_SM`). |
+| `theme` | `Optional[dict]` | `None` | Dictionary for global theming overriding defaults. |
 
 #### Signals
 | Name | Type | Description |

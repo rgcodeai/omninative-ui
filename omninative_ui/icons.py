@@ -11,9 +11,9 @@ _icon_cache: Dict[Tuple[Any, ...], QPixmap] = {}
 _audio_icon_cache: Dict[Tuple[Any, ...], QPixmap] = {}
 
 def _get_cached_checkbox(size: int = 20, checked: bool = False, bg_color: Optional[str] = None, border_color: Optional[str] = None, check_color: Optional[str] = None, corner_radius: int = 3) -> QPixmap:
-    if bg_color is None: bg_color = OMNINATIVE["dark"]
-    if border_color is None: border_color = OMNINATIVE["gray"]
-    if check_color is None: check_color = OMNINATIVE["bright"]
+    if bg_color is None: bg_color = OMNINATIVE["surface"]
+    if border_color is None: border_color = OMNINATIVE["border"]
+    if check_color is None: check_color = OMNINATIVE["fg"]
     key = ("checkbox", size, checked, bg_color, border_color, check_color, corner_radius)
     if key not in _icon_cache:
         pixmap = QPixmap(size, size)
@@ -48,7 +48,7 @@ def _get_cached_checkbox(size: int = 20, checked: bool = False, bg_color: Option
 
 def _get_cached_chevron(size: int = 20, color: Optional[str] = None, direction: str = "down", align: str = "center") -> QPixmap:
     if color is None:
-        color = OMNINATIVE["accent"]
+        color = OMNINATIVE["fg_muted"]
     key = ("chevron", size, color, direction, align)
     if key not in _icon_cache:
         padding = size * 0.3
@@ -112,7 +112,7 @@ def _get_cached_chevron(size: int = 20, color: Optional[str] = None, direction: 
 
 def _get_cached_plus(size: int = 20, color: Optional[str] = None, weight: float = 1.5) -> QPixmap:
     if color is None:
-        color = OMNINATIVE["accent"]
+        color = OMNINATIVE["fg_muted"]
     key = ("plus", size, color, weight)
     if key not in _icon_cache:
         pixmap = QPixmap(size, size)
@@ -138,7 +138,7 @@ def _get_cached_plus(size: int = 20, color: Optional[str] = None, weight: float 
 
 def _get_cached_arrow(size: int = 20, color: Optional[str] = None, direction: str = "up", weight: float = 2.0) -> QPixmap:
     if color is None:
-        color = OMNINATIVE["gray"]
+        color = OMNINATIVE["border"]
     key = ("arrow", size, color, direction, weight)
     if key not in _icon_cache:
         pixmap = QPixmap(size, size)
@@ -173,7 +173,7 @@ def _get_cached_arrow(size: int = 20, color: Optional[str] = None, direction: st
 def _get_cached_audio_icon(icon_type: str, size: int = 24, color: Union[str, 'QColor', None] = None) -> QPixmap:
     from PySide6.QtCore import QRectF, QPointF
     if color is None:
-        color = OMNINATIVE["bright"]
+        color = OMNINATIVE["fg"]
     if type(color).__name__ == "QColor":
         color_hex = color.name()
     else:
@@ -338,11 +338,11 @@ def _get_cached_app_icon(size: int = 64) -> QIcon:
         painter.setRenderHint(QPainter.Antialiasing)
         
         rect = QRectF(0, 0, size, size)
-        painter.setBrush(QBrush(QColor(OMNINATIVE["background"])))
+        painter.setBrush(QBrush(QColor(OMNINATIVE["bg"])))
         painter.setPen(Qt.NoPen)
         painter.drawRoundedRect(rect, size * 0.22, size * 0.22)
         
-        pen = QPen(QColor(OMNINATIVE["primary"]))
+        pen = QPen(QColor(OMNINATIVE["accent"]))
         pen.setWidthF(size * 0.12)
         pen.setCapStyle(Qt.RoundCap)
         painter.setPen(pen)
@@ -357,7 +357,7 @@ def _get_cached_app_icon(size: int = 64) -> QIcon:
 
 def _get_cached_file_icon(size: int = 24, color: Optional[str] = None) -> QPixmap:
     if color is None:
-        color = OMNINATIVE["accent"]
+        color = OMNINATIVE["fg_muted"]
     key = ("file", size, color)
     if key not in _icon_cache:
         pixmap = QPixmap(size, size)
@@ -393,7 +393,7 @@ def _get_cached_file_icon(size: int = 24, color: Optional[str] = None) -> QPixma
 
 def _get_cached_waveform_icon(size: int = 20, color: Optional[str] = None) -> QPixmap:
     if color is None:
-        color = OMNINATIVE["dark"]
+        color = OMNINATIVE["surface"]
     key = ("waveform", size, color)
     if key not in _icon_cache:
         pixmap = QPixmap(size, size)
@@ -436,7 +436,7 @@ def _get_cached_waveform_icon(size: int = 20, color: Optional[str] = None) -> QP
 
 def _get_cached_info_icon(size: int = 20, color: Optional[str] = None) -> QPixmap:
     if color is None:
-        color = OMNINATIVE["accent"]
+        color = OMNINATIVE["fg_muted"]
     key = ("info", size, color)
     if key not in _icon_cache:
         pixmap = QPixmap(size, size)

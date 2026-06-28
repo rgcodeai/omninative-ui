@@ -93,13 +93,13 @@ class _StretchAwareVBoxLayout(QVBoxLayout):
             super().addWidget(widget, stretch)
 
 def get_global_stylesheet() -> str:
-    bg_color = OMNINATIVE["background"]
-    widget_bg = OMNINATIVE["background"]
-    scroll_bg = OMNINATIVE["background"]
+    bg_color = OMNINATIVE["bg"]
+    widget_bg = OMNINATIVE["bg"]
+    scroll_bg = OMNINATIVE["bg"]
     return f"""
         QWidget {{
             background-color: transparent;
-            color: {OMNINATIVE["bright"]};
+            color: {OMNINATIVE["fg"]};
             font-family: "{_FONT_FAMILY}";
             font-size: {_FONT_SIZE_SM}pt;
         }}
@@ -107,7 +107,7 @@ def get_global_stylesheet() -> str:
             background-color: transparent;
         }}
         QWidget#central_widget {{
-            background-color: {OMNINATIVE["background"]};
+            background-color: {OMNINATIVE["bg"]};
         }}
         QLabel {{
             background-color: transparent;
@@ -125,7 +125,7 @@ def get_global_stylesheet() -> str:
             margin: 0px;
         }}
         QScrollBar::handle:vertical {{
-            background: {OMNINATIVE["accent"]};
+            background: {OMNINATIVE["fg_muted"]};
             min-height: 20px;
             margin-left: 3px;
             margin-right: 4px;
@@ -134,7 +134,7 @@ def get_global_stylesheet() -> str:
             border-radius: 0px;
         }}
         QScrollBar::handle:vertical:hover {{
-            background: {OMNINATIVE["accent"]};
+            background: {OMNINATIVE["fg_muted"]};
         }}
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
             border: none;
@@ -149,9 +149,9 @@ def get_global_stylesheet() -> str:
             background: none;
         }}
         QComboBox {{
-            background-color: {OMNINATIVE["background"]};
-            color: {OMNINATIVE["bright"]};
-            border: 1px solid {OMNINATIVE["gray"]};
+            background-color: {OMNINATIVE["bg"]};
+            color: {OMNINATIVE["fg"]};
+            border: 1px solid {OMNINATIVE["border"]};
             border-radius: {_CORNER}px;
             padding: 2px 8px;
         }}
@@ -165,41 +165,41 @@ def get_global_stylesheet() -> str:
             image: none;
         }}
         QComboBox QAbstractItemView {{
-            background-color: {OMNINATIVE["background"]};
-            color: {OMNINATIVE["accent"]};
-            border: 1px solid {OMNINATIVE["gray"]};
-            selection-background-color: {OMNINATIVE["dark"]};
-            selection-color: {OMNINATIVE["bright"]};
+            background-color: {OMNINATIVE["bg"]};
+            color: {OMNINATIVE["fg_muted"]};
+            border: 1px solid {OMNINATIVE["border"]};
+            selection-background-color: {OMNINATIVE["surface"]};
+            selection-color: {OMNINATIVE["fg"]};
         }}
         QLineEdit, QTextEdit, #RInput {{
-            background-color: {OMNINATIVE["dark"]};
-            color: {OMNINATIVE["bright"]};
-            border: 1px solid {OMNINATIVE["gray"]};
+            background-color: {OMNINATIVE["surface"]};
+            color: {OMNINATIVE["fg"]};
+            border: 1px solid {OMNINATIVE["border"]};
             border-radius: {_CORNER}px;
             padding: 2px 4px;
         }}
         QLineEdit:focus, QTextEdit:focus, #RInput:focus {{
-            border: 1px solid {OMNINATIVE["primary"]};
+            border: 1px solid {OMNINATIVE["accent"]};
         }}
         QLineEdit[readOnly="true"], QTextEdit[readOnly="true"] {{
-            color: {OMNINATIVE["accent"]};
+            color: {OMNINATIVE["fg_muted"]};
             background-color: transparent;
-            border: 1px solid {OMNINATIVE["gray"]};
+            border: 1px solid {OMNINATIVE["border"]};
         }}
         QLineEdit[readOnly="true"]:focus, QTextEdit[readOnly="true"]:focus {{
-            border: 1px solid {OMNINATIVE["primary"]};
+            border: 1px solid {OMNINATIVE["accent"]};
         }}
         #OHotkeyInput {{
-            background-color: {OMNINATIVE["dark"]};
-            color: {OMNINATIVE["accent"]};
+            background-color: {OMNINATIVE["surface"]};
+            color: {OMNINATIVE["fg_muted"]};
         }}
         #OHotkeyInput[recording="true"] {{
-            color: {OMNINATIVE["bright"]};
+            color: {OMNINATIVE["fg"]};
         }}
         QSpinBox {{
-            background-color: {OMNINATIVE["dark"]};
-            color: {OMNINATIVE["bright"]};
-            border: 1px solid {OMNINATIVE["gray"]};
+            background-color: {OMNINATIVE["surface"]};
+            color: {OMNINATIVE["fg"]};
+            border: 1px solid {OMNINATIVE["border"]};
             border-radius: {_CORNER}px;
         }}
     """

@@ -69,6 +69,8 @@ from .containers import (
     OVirtualTable,
     OTableTextEdit,
     OTableItemDelegate,
+    OSidebar,
+    OSidebarItem,
 )
 
 from .media import (

@@ -115,7 +115,7 @@ class ORealtimeWaveform(QWidget):
         from .tokens import OMNINATIVE
         from ._utils import o_theme_val
         super().__init__(parent)
-        self._color = o_theme_val(theme, "waveform_color", color, OMNINATIVE["dark"])
+        self._color = o_theme_val(theme, "waveform_color", color, OMNINATIVE["surface"])
         self.setMinimumWidth(90)
         self.setFixedHeight(41)
         self._is_talking = False
@@ -199,7 +199,7 @@ class OSpinner(QWidget):
         from ._utils import o_theme_val
         super().__init__(parent)
         self.setFixedSize(size, size)
-        self._color = o_theme_val(theme, "spinner_color", color, OMNINATIVE["dark"])
+        self._color = o_theme_val(theme, "spinner_color", color, OMNINATIVE["surface"])
         self._angle = 0
         self._timer = QTimer(self)
         self._timer.setInterval(20)
@@ -261,8 +261,8 @@ class OAudioRecorderOverlay(OHotkeyOverlay):
         self.chunk_ms = chunk_ms
         self.enable_processing_state = enable_processing_state
         
-        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["bright"])
-        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["dark"])
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["fg"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["surface"])
         self._theme = theme
         
         self.setFixedSize(125, 41)
@@ -613,9 +613,9 @@ class OTooltip(QWidget):
         self.setAttribute(Qt.WA_ShowWithoutActivating)
         self.setAttribute(Qt.WA_TranslucentBackground)
         
-        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
-        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["accent"])
-        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["bright"])
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["surface"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg_muted"])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["fg"])
         self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
         self._fs = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
         self._pad = o_theme_val(theme, "pad", pad, _PAD)
@@ -662,7 +662,7 @@ class OInfoIcon(QLabel):
         self.icon_size = size
         
         self._icon = o_theme_val(theme, "icon_color", icon_color, None)
-        self._icon_hov = o_theme_val(theme, "icon_hover_color", icon_hover_color, OMNINATIVE["primary"])
+        self._icon_hov = o_theme_val(theme, "icon_hover_color", icon_hover_color, OMNINATIVE["accent"])
         self._theme = theme
         
         self.setPixmap(_get_cached_info_icon(size=self.icon_size, color=self._icon))

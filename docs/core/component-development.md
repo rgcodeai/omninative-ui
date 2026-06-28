@@ -19,7 +19,7 @@ All custom components must be prefixed with `O` (e.g., `ONewButton`, `OCustomSli
 
 ### Styling & Tokens
 - **NEVER use hardcoded colors.** Use the tokens defined in `omninative_ui/tokens.py`.
-- The `OMNINATIVE` dictionary contains the palette (`OMNINATIVE["primary"]`, `OMNINATIVE["dark"]`, `OMNINATIVE["border"]`, etc.).
+- The `OMNINATIVE` dictionary contains the palette (`OMNINATIVE["accent"]`, `OMNINATIVE["surface"]`, `OMNINATIVE["border"]`, etc.).
 - Try to rely on the global stylesheet (`_utils.py`) for baseline aesthetics.
 - If dynamic or specific styling is required, use inline `.setStyleSheet()` or override `paintEvent`, but always construct the style strings using the `OMNINATIVE` tokens, `_PAD`, and `_CORNER` constants.
 

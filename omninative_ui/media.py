@@ -47,12 +47,12 @@ class OAudioButton(QPushButton):
         self.size_val = size
         self.is_active = False
 
-        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
-        self._primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE["primary"])
-        self._secondary = o_theme_val(theme, "secondary_color", secondary_color, OMNINATIVE["accent"])
-        self._hover = o_theme_val(theme, "hover_color", hover_color, OMNINATIVE["primary"])
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["surface"])
+        self._primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE["accent"])
+        self._secondary = o_theme_val(theme, "secondary_color", secondary_color, OMNINATIVE["fg_muted"])
+        self._hover = o_theme_val(theme, "hover_color", hover_color, OMNINATIVE["accent"])
         self._border = o_theme_val(theme, "border_color", border_color, self._secondary)
-        self._pressed_bg = o_theme_val(theme, "pressed_bg_color", kwargs.get("pressed_bg_color"), OMNINATIVE["gray"])
+        self._pressed_bg = o_theme_val(theme, "pressed_bg_color", kwargs.get("pressed_bg_color"), OMNINATIVE["border"])
 
         self.setFixedSize(size, size)
         self.setCursor(Qt.PointingHandCursor)
@@ -107,7 +107,7 @@ class OAudioButton(QPushButton):
         if self.is_active:
             if self.icon_type == "mic":
                 t = self._pulse_factor()
-                color = self._lerp_color(self._primary, OMNINATIVE["bright"], t)
+                color = self._lerp_color(self._primary, OMNINATIVE["fg"], t)
             else:
                 color = self._primary
         elif self._hovered:
@@ -123,7 +123,7 @@ class OAudioButton(QPushButton):
         border_color = self._border
         if self.is_active and self.icon_type == "mic":
             t = self._pulse_factor()
-            border_color = self._lerp_color(self._primary, OMNINATIVE["bright"], t)
+            border_color = self._lerp_color(self._primary, OMNINATIVE["fg"], t)
         elif self._hovered:
             border_color = self._hover
 
@@ -170,10 +170,10 @@ class OAudioWaveform(QWidget):
         self._playhead_width = playhead_width
         self._height_ratio = height_ratio
 
-        self._bg_color = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
-        self._primary_color = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE["primary"])
-        self._secondary_color = o_theme_val(theme, "secondary_color", secondary_color, OMNINATIVE["accent"])
-        self._line_color = o_theme_val(theme, "center_line_color", center_line_color, OMNINATIVE["gray"])
+        self._bg_color = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["surface"])
+        self._primary_color = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE["accent"])
+        self._secondary_color = o_theme_val(theme, "secondary_color", secondary_color, OMNINATIVE["fg_muted"])
+        self._line_color = o_theme_val(theme, "center_line_color", center_line_color, OMNINATIVE["border"])
 
         self.setMinimumHeight(min_height)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -448,12 +448,12 @@ class OAudioPlayer(QWidget):
         self.last_tick_time = 0.0
 
         # Theming
-        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
-        self._sec_txt = o_theme_val(theme, "secondary_text_color", secondary_text_color, OMNINATIVE["accent"])
-        self._slider_bg = o_theme_val(theme, "slider_bg_color", slider_bg_color, OMNINATIVE["dark"])
-        self._slider_fill = o_theme_val(theme, "slider_fill_color", slider_fill_color, OMNINATIVE["primary"])
-        self._slider_handle = o_theme_val(theme, "slider_handle_color", slider_handle_color, OMNINATIVE["bright"])
-        self._slider_hover = o_theme_val(theme, "slider_handle_hover_color", slider_handle_hover_color, OMNINATIVE["primary"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg"])
+        self._sec_txt = o_theme_val(theme, "secondary_text_color", secondary_text_color, OMNINATIVE["fg_muted"])
+        self._slider_bg = o_theme_val(theme, "slider_bg_color", slider_bg_color, OMNINATIVE["surface"])
+        self._slider_fill = o_theme_val(theme, "slider_fill_color", slider_fill_color, OMNINATIVE["accent"])
+        self._slider_handle = o_theme_val(theme, "slider_handle_color", slider_handle_color, OMNINATIVE["fg"])
+        self._slider_hover = o_theme_val(theme, "slider_handle_hover_color", slider_handle_hover_color, OMNINATIVE["accent"])
         self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 
         # Top Bar
@@ -859,7 +859,7 @@ class OAudioPlayer(QWidget):
 class OFullscreenViewer(QDialog):
     def __init__(self, images_list: List[Dict[str, Any]], current_idx: int, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent, Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-        self.setStyleSheet(f"background-color: {OMNINATIVE['dark']};")
+        self.setStyleSheet(f"background-color: {OMNINATIVE['surface']};")
         self.layout_ = QVBoxLayout(self)
         self.layout_.setContentsMargins(0, 0, 0, 0)
         
@@ -933,12 +933,12 @@ class OImageViewer(QWidget):
         self._show_download = show_download
         self._placeholder_text = placeholder_text or "Click 'Load' to add images"
 
-        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
-        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
-        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
-        self._sec_txt = o_theme_val(theme, "secondary_text_color", secondary_text_color, OMNINATIVE["accent"])
-        self._thumb_bc = o_theme_val(theme, "thumbnail_border_color", thumbnail_border_color, OMNINATIVE["gray"])
-        self._thumb_act_bc = o_theme_val(theme, "thumbnail_active_border_color", thumbnail_active_border_color, OMNINATIVE["bright"])
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["surface"])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["border"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg"])
+        self._sec_txt = o_theme_val(theme, "secondary_text_color", secondary_text_color, OMNINATIVE["fg_muted"])
+        self._thumb_bc = o_theme_val(theme, "thumbnail_border_color", thumbnail_border_color, OMNINATIVE["border"])
+        self._thumb_act_bc = o_theme_val(theme, "thumbnail_active_border_color", thumbnail_active_border_color, OMNINATIVE["fg"])
         self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
         self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 
@@ -1240,12 +1240,12 @@ class OFileItem(QFrame):
 
         apply_layout_dimensions(self, width, height)
 
-        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
-        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
-        self._hov_bc = o_theme_val(theme, "hover_border_color", hover_border_color, OMNINATIVE["primary"])
-        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
-        self._sec_txt = o_theme_val(theme, "secondary_text_color", secondary_text_color, OMNINATIVE["accent"])
-        self._icon_c = o_theme_val(theme, "icon_color", icon_color, OMNINATIVE["primary"])
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["surface"])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["border"])
+        self._hov_bc = o_theme_val(theme, "hover_border_color", hover_border_color, OMNINATIVE["accent"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg"])
+        self._sec_txt = o_theme_val(theme, "secondary_text_color", secondary_text_color, OMNINATIVE["fg_muted"])
+        self._icon_c = o_theme_val(theme, "icon_color", icon_color, OMNINATIVE["accent"])
         self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
         self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 

@@ -57,11 +57,11 @@ class OLineEdit(QLineEdit):
         if read_only:
             self.setReadOnly(True)
             
-        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["surface"])
         _bg_foc = o_theme_val(theme, "bg_focus_color", bg_focus_color, _bg)
-        _txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
-        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
-        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE["primary"])
+        _txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg"])
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["border"])
+        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE["accent"])
         _bw = o_theme_val(theme, "border_width", border_width, 1)
         _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
         _sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
@@ -81,12 +81,12 @@ class OLineEdit(QLineEdit):
                 background-color: {_bg_foc};
             }}
             QLineEdit[readOnly="true"] {{
-                color: {OMNINATIVE["accent"]};
+                color: {OMNINATIVE["fg_muted"]};
                 background-color: transparent;
-                border: {_bw}px solid {OMNINATIVE["gray"]};
+                border: {_bw}px solid {OMNINATIVE["border"]};
             }}
             QLineEdit[readOnly="true"]:focus {{
-                border: {_bw}px solid {OMNINATIVE["primary"]};
+                border: {_bw}px solid {OMNINATIVE["accent"]};
             }}
         """)
             
@@ -151,11 +151,11 @@ class OHotkeyInput(OLineEdit):
         self._recording_state = False
         self.setProperty("recording", False)
         
-        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
-        _txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["accent"])
-        _txt_rec = o_theme_val(theme, "text_recording_color", text_recording_color, OMNINATIVE["bright"])
-        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
-        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE["primary"])
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["surface"])
+        _txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg_muted"])
+        _txt_rec = o_theme_val(theme, "text_recording_color", text_recording_color, OMNINATIVE["fg"])
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["border"])
+        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE["accent"])
         _bw = o_theme_val(theme, "border_width", border_width, 1)
         _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
         _sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
@@ -309,11 +309,11 @@ class OTextBox(QTextEdit):
         self._command = command
         self._on_enter_callback = on_enter
         
-        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["surface"])
         _bg_foc = o_theme_val(theme, "bg_focus_color", bg_focus_color, _bg)
-        _txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
-        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
-        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE["primary"])
+        _txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg"])
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["border"])
+        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE["accent"])
         _bw = o_theme_val(theme, "border_width", border_width, 1)
         _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
         _sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
@@ -333,12 +333,12 @@ class OTextBox(QTextEdit):
                 background-color: {_bg_foc};
             }}
             QTextEdit[readOnly="true"] {{
-                color: {OMNINATIVE["accent"]};
+                color: {OMNINATIVE["fg_muted"]};
                 background-color: transparent;
-                border: {_bw}px solid {OMNINATIVE["gray"]};
+                border: {_bw}px solid {OMNINATIVE["border"]};
             }}
             QTextEdit[readOnly="true"]:focus {{
-                border: {_bw}px solid {OMNINATIVE["primary"]};
+                border: {_bw}px solid {OMNINATIVE["accent"]};
             }}
         """)
         
@@ -427,10 +427,10 @@ class OSpinBox(QWidget):
         self._command = command
         self._value = value
         
-        _btn_bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['dark'])
-        _btn_txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE['accent'])
-        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['gray'])
-        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE['primary'])
+        _btn_bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['surface'])
+        _btn_txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE['fg_muted'])
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['border'])
+        _bc_foc = o_theme_val(theme, "border_focus_color", border_focus_color, OMNINATIVE['accent'])
         _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
 
         btn_style = f"""
@@ -443,7 +443,7 @@ class OSpinBox(QWidget):
                 padding-bottom: 2px;
             }}
             QPushButton:hover {{
-                color: {OMNINATIVE['primary']};
+                color: {OMNINATIVE['accent']};
                 border: 1px solid {_bc_foc};
             }}
         """
@@ -571,10 +571,10 @@ class OSlider(QWidget):
         self._slider.valueChanged.connect(self._on_slider_changed)
         self._entry.textChanged.connect(self._on_entry_changed)
         
-        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['dark'])
-        _primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE['primary'])
-        _accent = o_theme_val(theme, "accent_color", None, OMNINATIVE['accent'])
-        _bright = o_theme_val(theme, "bright_color", None, OMNINATIVE['bright'])
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['surface'])
+        _primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE['accent'])
+        _accent = o_theme_val(theme, "accent_color", None, OMNINATIVE['fg_muted'])
+        _bright = o_theme_val(theme, "bright_color", None, OMNINATIVE['fg'])
 
         self._slider.setStyleSheet(f"""
             QSlider::groove:horizontal {{
@@ -675,8 +675,8 @@ class OProgressBar(QProgressBar):
         if cr < 1:
             cr = 1
             
-        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['dark'])
-        _primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE['primary'])
+        _bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['surface'])
+        _primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE['accent'])
 
         self.setStyleSheet(f"""
             QProgressBar {{

@@ -55,10 +55,10 @@ class OChatMessage(QFrame):
         self.layout_.setContentsMargins(pad, pad, pad, pad)
         self.layout_.setSpacing(spacing)
         
-        self._user_bg = o_theme_val(theme, "user_bg_color", user_bg_color, OMNINATIVE["dark"])
-        self._user_txt = o_theme_val(theme, "user_text_color", user_text_color, OMNINATIVE["bright"])
+        self._user_bg = o_theme_val(theme, "user_bg_color", user_bg_color, OMNINATIVE["surface"])
+        self._user_txt = o_theme_val(theme, "user_text_color", user_text_color, OMNINATIVE["fg"])
         self._ast_bg = o_theme_val(theme, "assistant_bg_color", assistant_bg_color, "transparent")
-        self._ast_txt = o_theme_val(theme, "assistant_text_color", assistant_text_color, OMNINATIVE["bright"])
+        self._ast_txt = o_theme_val(theme, "assistant_text_color", assistant_text_color, OMNINATIVE["fg"])
         self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
         self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 
@@ -186,13 +186,13 @@ class OChatInput(QFrame):
         self.setObjectName("chat_input")
         radius = height // 2 if height > 0 else 25
 
-        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["dark"])
-        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
-        self._icon = o_theme_val(theme, "icon_color", icon_color, OMNINATIVE["accent"])
-        self._icon_hov = o_theme_val(theme, "icon_hover_color", icon_hover_color, OMNINATIVE["bright"])
-        self._btn_bg = o_theme_val(theme, "button_bg_color", button_bg_color, OMNINATIVE["bright"])
-        self._btn_icon = o_theme_val(theme, "button_icon_color", button_icon_color, OMNINATIVE["gray"])
-        self._btn_icon_hov = o_theme_val(theme, "button_icon_hover_color", button_icon_hover_color, OMNINATIVE["background"])
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["surface"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg"])
+        self._icon = o_theme_val(theme, "icon_color", icon_color, OMNINATIVE["fg_muted"])
+        self._icon_hov = o_theme_val(theme, "icon_hover_color", icon_hover_color, OMNINATIVE["fg"])
+        self._btn_bg = o_theme_val(theme, "button_bg_color", button_bg_color, OMNINATIVE["fg"])
+        self._btn_icon = o_theme_val(theme, "button_icon_color", button_icon_color, OMNINATIVE["border"])
+        self._btn_icon_hov = o_theme_val(theme, "button_icon_hover_color", button_icon_hover_color, OMNINATIVE["bg"])
 
         self.setStyleSheet(f"#chat_input {{ background-color: {self._bg}; border-radius: {radius}px; }}")
         
@@ -306,8 +306,8 @@ class OActionMenuItem(QFrame):
         self.text_val = text
         self.setObjectName("action_item")
 
-        self._bg_hov = o_theme_val(theme, "bg_hover_color", bg_hover_color, OMNINATIVE["dark"])
-        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["bright"])
+        self._bg_hov = o_theme_val(theme, "bg_hover_color", bg_hover_color, OMNINATIVE["surface"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg"])
 
         self.setStyleSheet(f"#action_item {{ background-color: transparent; border-radius: 6px; }}")
         self.setCursor(Qt.PointingHandCursor)
@@ -385,7 +385,7 @@ class OActionMenu(QWidget):
         
         self._bg = o_theme_val(theme, "bg_color", bg_color, "#2F2F2F")
         self._bc = o_theme_val(theme, "border_color", border_color, "#3F3F3F")
-        self._sep = o_theme_val(theme, "separator_color", separator_color, OMNINATIVE["dark"])
+        self._sep = o_theme_val(theme, "separator_color", separator_color, OMNINATIVE["surface"])
         self._theme = theme
 
         self.container = QFrame()

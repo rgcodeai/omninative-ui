@@ -70,7 +70,7 @@ class OScrollArea(QScrollArea):
         self.setWidgetResizable(True)
         
         _bg = o_theme_val(theme, "bg_color", bg_color, "transparent")
-        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['dark'])
+        _bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['surface'])
         _bw = o_theme_val(theme, "border_width", border_width, 1)
         _br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
 
@@ -134,10 +134,10 @@ class OTableItemDelegate(QStyledItemDelegate):
         rect = option.rect
 
         table = self.parent()
-        _bg = getattr(table, "_bg", OMNINATIVE["background"])
-        _alt_bg = getattr(table, "_alt_bg", OMNINATIVE["dark"])
-        _txt = getattr(table, "_txt", OMNINATIVE["accent"])
-        _bc = getattr(table, "_bc", OMNINATIVE["gray"])
+        _bg = getattr(table, "_bg", OMNINATIVE["bg"])
+        _alt_bg = getattr(table, "_alt_bg", OMNINATIVE["surface"])
+        _txt = getattr(table, "_txt", OMNINATIVE["fg_muted"])
+        _bc = getattr(table, "_bc", OMNINATIVE["border"])
         _br = getattr(table, "_br", _CORNER)
 
         # No selection highlight
@@ -159,7 +159,7 @@ class OTableItemDelegate(QStyledItemDelegate):
             y_off = (rect.height() - h) // 2
             box_rect = QRect(rect.x() + 4, rect.y() + y_off, rect.width() - 8, h)
             painter.setBrush(QBrush(bg_color))
-            painter.setPen(QPen(QColor(OMNINATIVE["gray"])))
+            painter.setPen(QPen(QColor(OMNINATIVE["border"])))
             painter.drawRoundedRect(box_rect, _CORNER, _CORNER)
 
         elif is_textbox:
@@ -217,10 +217,10 @@ class OTableItemDelegate(QStyledItemDelegate):
             editor.document().setDocumentMargin(0)
             
             table = self.parent()
-            _bg = getattr(table, "_bg", OMNINATIVE["background"])
-            _alt_bg = getattr(table, "_alt_bg", OMNINATIVE["dark"])
-            _txt = getattr(table, "_txt", OMNINATIVE["accent"])
-            _primary = getattr(table, "_primary", OMNINATIVE["primary"])
+            _bg = getattr(table, "_bg", OMNINATIVE["bg"])
+            _alt_bg = getattr(table, "_alt_bg", OMNINATIVE["surface"])
+            _txt = getattr(table, "_txt", OMNINATIVE["fg_muted"])
+            _primary = getattr(table, "_primary", OMNINATIVE["accent"])
             
             base_bg = _alt_bg if index.row() % 2 else _bg
             solid_bg = re.sub(r'\d+\)$', '255)', base_bg)
@@ -461,13 +461,13 @@ class OVirtualTable(QTableView):
             self.delegates.append(delegate)
             self.setItemDelegateForColumn(i, delegate)
 
-        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["background"])
-        self._alt_bg = o_theme_val(theme, "alt_bg_color", alt_bg_color, OMNINATIVE["dark"])
-        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["accent"])
-        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["gray"])
-        self._header_bg = o_theme_val(theme, "header_bg_color", header_bg_color, OMNINATIVE["dark"])
-        self._header_txt = o_theme_val(theme, "header_text_color", header_text_color, OMNINATIVE["accent"])
-        self._primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE["primary"])
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE["bg"])
+        self._alt_bg = o_theme_val(theme, "alt_bg_color", alt_bg_color, OMNINATIVE["surface"])
+        self._txt = o_theme_val(theme, "text_color", text_color, OMNINATIVE["fg_muted"])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE["border"])
+        self._header_bg = o_theme_val(theme, "header_bg_color", header_bg_color, OMNINATIVE["surface"])
+        self._header_txt = o_theme_val(theme, "header_text_color", header_text_color, OMNINATIVE["fg_muted"])
+        self._primary = o_theme_val(theme, "primary_color", primary_color, OMNINATIVE["accent"])
         self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
         self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 
@@ -711,8 +711,8 @@ class OTreeWidget(QWidget):
         self.icon_lbl.setAlignment(Qt.AlignCenter)
         self.icon_lbl.setCursor(Qt.PointingHandCursor)
 
-        self._txt_color = o_theme_val(theme, "text_color", text_color, OMNINATIVE['bright'])
-        self._icon_color = o_theme_val(theme, "icon_color", icon_color, OMNINATIVE['accent'])
+        self._txt_color = o_theme_val(theme, "text_color", text_color, OMNINATIVE['fg'])
+        self._icon_color = o_theme_val(theme, "icon_color", icon_color, OMNINATIVE['fg_muted'])
         self._icon_hover_color = o_theme_val(theme, "icon_hover_color", icon_hover_color, self._txt_color)
         _sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 
@@ -801,13 +801,13 @@ class OTabs(QWidget):
 
         self._tab_button_height = tab_button_height
 
-        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['background'])
-        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['gray'])
+        self._bg = o_theme_val(theme, "bg_color", bg_color, OMNINATIVE['bg'])
+        self._bc = o_theme_val(theme, "border_color", border_color, OMNINATIVE['border'])
         self._tab_bg = o_theme_val(theme, "tab_bg_color", tab_bg_color, self._bg)
-        self._tab_txt = o_theme_val(theme, "tab_text_color", tab_text_color, OMNINATIVE['accent'])
-        self._tab_act_bg = o_theme_val(theme, "tab_active_bg_color", tab_active_bg_color, OMNINATIVE['dark'])
-        self._tab_act_txt = o_theme_val(theme, "tab_active_text_color", tab_active_text_color, OMNINATIVE['bright'])
-        self._tab_hov_txt = o_theme_val(theme, "tab_hover_text_color", tab_hover_text_color, OMNINATIVE['bright'])
+        self._tab_txt = o_theme_val(theme, "tab_text_color", tab_text_color, OMNINATIVE['fg_muted'])
+        self._tab_act_bg = o_theme_val(theme, "tab_active_bg_color", tab_active_bg_color, OMNINATIVE['surface'])
+        self._tab_act_txt = o_theme_val(theme, "tab_active_text_color", tab_active_text_color, OMNINATIVE['fg'])
+        self._tab_hov_txt = o_theme_val(theme, "tab_hover_text_color", tab_hover_text_color, OMNINATIVE['fg'])
         self._br = o_theme_val(theme, "border_radius", border_radius, _CORNER)
         self._sz = o_theme_val(theme, "font_size", font_size, _FONT_SIZE_SM)
 
@@ -925,4 +925,177 @@ class OTabs(QWidget):
                 if info["on_first_activate"]:
                     info["on_first_activate"](info["page"])
 
+    def pack(self, **kwargs: Any) -> None: pass
+
+# ---------------------------------------------------------------------------
+# OSidebar
+# ---------------------------------------------------------------------------
+class OSidebarItem(QFrame):
+    """
+    A single navigation item for the OSidebar.
+    Supports hover states and click events.
+    """
+    clicked = Signal(str)
+
+    def __init__(
+        self,
+        master: Optional[QWidget],
+        text: str,
+        icon: Optional[str] = None,
+        command: Optional[Callable[[], None]] = None,
+        theme: Optional[dict] = None,
+        **kwargs: Any
+    ) -> None:
+        super().__init__(master)
+        self.text = text
+        self.command = command
+        
+        self.setObjectName("OSidebarItem")
+        self.setFixedHeight(33)
+        self.setCursor(Qt.PointingHandCursor)
+        
+        self._bg_hov = o_theme_val(theme, "item_hover_color", kwargs.get("item_hover_color"), OMNINATIVE["surface"])
+        self._bg_active = o_theme_val(theme, "item_active_color", kwargs.get("item_active_color"), OMNINATIVE["surface"])
+        self._text_color = o_theme_val(theme, "text_color", kwargs.get("text_color"), OMNINATIVE["fg"])
+        self._font_family = o_theme_val(theme, "font_family", kwargs.get("font_family"), _FONT_FAMILY)
+        
+        self.layout_ = QHBoxLayout(self)
+        self.layout_.setContentsMargins(10, 0, 10, 0)
+        self.layout_.setSpacing(6)
+        self.layout_.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        
+        # If there's an icon, you could add an OLabel or icon renderer here
+        # For now, just the text as per design, but scalable for icons
+        self.lbl = QLabel(text)
+        self.lbl.setStyleSheet("background: transparent; border: none;")
+        self.lbl.setFont(QFont(self._font_family, _FONT_SIZE_SM, QFont.Normal))
+        self.layout_.addWidget(self.lbl)
+        
+        self._is_active = False
+        self._update_style()
+        
+    def _update_style(self, hovered: bool = False) -> None:
+        if self._is_active:
+            bg = self._bg_active
+            text_color = self._text_color
+        elif hovered:
+            bg = self._bg_hov
+            text_color = self._text_color
+        else:
+            bg = "transparent"
+            text_color = OMNINATIVE.get("fg_muted", "#A0A0A0")
+            
+        self.setStyleSheet(f"""
+            #OSidebarItem {{
+                background-color: {bg};
+                border-radius: 10px;
+            }}
+            QLabel {{
+                color: {text_color};
+                font-size: 12px;
+                font-family: '{self._font_family}';
+            }}
+        """)
+        
+    def set_active(self, active: bool) -> None:
+        self._is_active = active
+        self._update_style()
+        
+    def enterEvent(self, event: Any) -> None:
+        if not self._is_active:
+            self._update_style(hovered=True)
+        super().enterEvent(event)
+        
+    def leaveEvent(self, event: Any) -> None:
+        if not self._is_active:
+            self._update_style(hovered=False)
+        super().leaveEvent(event)
+        
+    def mousePressEvent(self, event: Any) -> None:
+        self.clicked.emit(self.text)
+        if self.command:
+            self.command()
+        super().mousePressEvent(event)
+
+
+class OSidebar(QFrame):
+    """
+    Native sidebar container with a header, body (for items), and footer.
+    """
+    def __init__(
+        self,
+        master: Optional[QWidget],
+        width: Union[int, str] = 250,
+        bg_color: Optional[str] = None,
+        theme: Optional[dict] = None,
+        **kwargs: Any
+    ) -> None:
+        super().__init__(master)
+        
+        apply_layout_dimensions(self, width, "100%")
+        self.setObjectName("OSidebar")
+        
+        self._bg = o_theme_val(theme, "bg_color", bg_color, "#282828")
+        self.theme = theme
+        self.kwargs = kwargs
+        
+        self.setStyleSheet(f"""
+            #OSidebar {{
+                background-color: {self._bg};
+                border: none;
+            }}
+        """)
+        
+        self.layout_ = QVBoxLayout(self)
+        self.layout_.setContentsMargins(0, 0, 0, 0)
+        self.layout_.setSpacing(0)
+        
+        # Header Group
+        self.header_group = QFrame(self)
+        self.header_group.setFixedHeight(60)
+        self.header_layout = QHBoxLayout(self.header_group)
+        self.header_layout.setContentsMargins(25, 0, 25, 0)
+        self.header_layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.layout_.addWidget(self.header_group)
+        
+        # Content Group
+        self.content_group = QFrame(self)
+        self.content_layout = QVBoxLayout(self.content_group)
+        self.content_layout.setContentsMargins(15, 0, 15, 0)
+        self.content_layout.setSpacing(5)
+        self.content_layout.setAlignment(Qt.AlignTop)
+        
+        # Wrap content in a scroll area just in case there are many items
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setWidget(self.content_group)
+        self.scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; } QWidget#OSidebarContent { background: transparent; }")
+        self.content_group.setObjectName("OSidebarContent")
+        self.layout_.addWidget(self.scroll_area, 1) # flex-grow: 1
+        
+        # Footer Group
+        self.footer_group = QFrame(self)
+        self.footer_group.setFixedHeight(60)
+        self.footer_layout = QHBoxLayout(self.footer_group)
+        self.footer_layout.setContentsMargins(25, 12, 25, 12)
+        self.footer_layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.layout_.addWidget(self.footer_group)
+        
+        self._items: Dict[str, OSidebarItem] = {}
+        
+    def add_item(self, text: str, command: Optional[Callable[[], None]] = None) -> OSidebarItem:
+        """Adds a navigation item to the sidebar."""
+        item = OSidebarItem(self.content_group, text=text, command=command, theme=self.theme, **self.kwargs)
+        self.content_layout.addWidget(item)
+        self._items[text] = item
+        
+        # Optional: Auto-manage active state if you want a single active item
+        item.clicked.connect(self.set_active_item)
+        return item
+        
+    def set_active_item(self, text: str) -> None:
+        """Sets the active state for the item with the given text, deactivating others."""
+        for item_text, item in self._items.items():
+            item.set_active(item_text == text)
+            
     def pack(self, **kwargs: Any) -> None: pass

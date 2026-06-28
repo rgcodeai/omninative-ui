@@ -646,6 +646,26 @@ config_group.layout_.addWidget(tabs)
 tabs = OTabs(config_group, header_height=22, tab_button_height=16, content_gap=5)
 ```
 
+#### `OSidebar` & `OSidebarItem`
+
+- **Supports**: Native sidebar container with header, content items, and footer areas. Supports hover effects and active states for navigation.
+- **Adjustable Props**:
+
+| Prop | Type | Default | Purpose |
+| :--- | :--- | :--- | :--- |
+| `width` | `Union[int, str]` | `250` | Fixed width in px. `"100%"` = Expanding. |
+| `bg_color` | `Optional[str]` | `None` | Background color. |
+| `theme` | `Optional[dict]` | `None` | Global theming dictionary. |
+
+- **Implementation**:
+
+```python
+sidebar = OSidebar(win.body, width=250)
+sidebar.add_item("Home", lambda: print("Go home"))
+sidebar.add_item("Settings")
+win.body.layout().addWidget(sidebar)
+```
+
 #### `OVirtualTable`
 
 - **Supports**: High-performance table (100k+ rows) with embedded controls (OComboBox, OTextBox). Based on Qt MVC pattern.

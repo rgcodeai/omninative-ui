@@ -216,3 +216,52 @@ table = OVirtualTable(config_group, columns=("A", "B"), header_height=32, row_he
 # Non-hug scrollable table
 table = OVirtualTable(config_group, columns=("Log",), hug=False, visible_rows=10)
 ```
+
+---
+
+### `OSidebar` & `OSidebarItem`
+
+Path: `omninative_ui/containers.py`
+Type: Component (QFrame)
+Description: Native sidebar container with header, content items, and footer areas. Supports active states and hover effects for navigation items.
+
+#### Initialization (Props for OSidebar)
+
+**Layout & Dimensions:**
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `master` | `Optional[QWidget]` | `None` | Parent container. |
+| `width` | `Union[int, str]` | `250` | Fixed width. `"100%"` = Expanding. |
+| `bg_color` | `Optional[str]` | `None` | Background color (`#2B2B2B` by default). |
+| `theme` | `Optional[dict]` | `None` | Theme dictionary. |
+| `**kwargs` | `Any` | | Passed down to `OSidebarItem`s when added. Options include `item_hover_color`, `item_active_color`, `text_color`, `font_family`. |
+
+#### Key Methods & Sections
+| Name | Type | Description |
+| :--- | :--- | :--- |
+| `header_group` | Property | `QFrame` container for the top section (e.g. logos). Access layout via `header_layout`. |
+| `footer_group` | Property | `QFrame` container for the bottom section (e.g. settings or version). Access layout via `footer_layout`. |
+| `add_item(text: str, command: Callable) -> OSidebarItem` | Method | Creates and appends an `OSidebarItem`. Automatically manages its active state on click. |
+| `set_active_item(text: str)` | Method | Sets the given item text to the active visual state. |
+
+#### Usage Examples
+
+```python
+sidebar = OSidebar(window.body, width=250)
+
+# Add Logo to Header
+logo = OLabel(sidebar.header_group, text="Omni Wispr", bold=True, size=14)
+sidebar.header_layout.addWidget(logo)
+
+# Add Navigation Items
+sidebar.add_item("Home", lambda: print("Home clicked"))
+sidebar.add_item("Transcriptions", lambda: print("Transcriptions clicked"))
+sidebar.add_item("Settings")
+
+# Add Version to Footer
+version = OLabel(sidebar.footer_group, text="v1.0.0")
+sidebar.footer_layout.addWidget(version)
+
+window.body.layout().addWidget(sidebar)
+```
+
